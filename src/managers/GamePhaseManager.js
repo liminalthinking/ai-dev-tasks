@@ -1,0 +1,396 @@
+export const GamePhases = {
+    PLAY_CARDS: 'playCards',
+    BUILD: 'build',
+    EVOLVE: 'evolve',
+    END_TURN: 'endTurn',
+    GAME_OVER: 'gameOver'
+};
+
+export const PhaseMessages = {
+    [GamePhases.PLAY_CARDS]: "Click the top of deck to play the next card. Click the End Phase button to move to the next phase",
+    [GamePhases.BUILD]: "Buy cards from the MARKET with available resources. Click the End Phase button to move to the next phase",
+    [GamePhases.EVOLVE]: "Evolve cards from the Played Cards area, Click the End Phase button to end this turn",
+    [GamePhases.END_TURN]: "Processing end of turn...",
+    [GamePhases.GAME_OVER]: "Congratulations! Your nation survived 12 turns and achieved {points} Building Points!"
+};
+
+export class GamePhaseManager {
+    constructor(cardInteractionSystem, sceneManager) {
+        this.cardInteractionSystem = cardInteractionSystem;
+        this.sceneManager = sceneManager;
+        this.currentPhase = GamePhases.PLAY_CARDS;
+        this.currentTurn = 1;
+        this.maxTurns = 12;
+        this.buildingPoints = 0;
+        this.isProcessingEndTurn = false;
+        
+        // Turn tracking - just records what happened each turn
+        this.turnHistory = [];
+        this.turnState = {
+            cardsPlayed: 0,
+            resourcesGained: 0,
+            resourcesSpent: 0,
+            pressureGained: 0,
+            cardsPurchased: 0,
+            cardsEvolved: 0
+        };
+    }
+
+    getCurrentPhase() {
+        return this.currentPhase;
+    }
+
+    getCurrentTurn() {
+        return this.currentTurn;
+    }
+
+    getBuildingPoints() {
+        return this.buildingPoints;
+    }
+
+    getCurrentPhaseMessage() {
+        if (this.currentPhase === GamePhases.GAME_OVER) {
+            return PhaseMessages[GamePhases.GAME_OVER].replace('{points}', this.buildingPoints);
+        }
+        return PhaseMessages[this.currentPhase];
+    }
+
+    // Handle card drawing during Play Cards phase
+    async handleCardDraw() {
+        if (this.currentPhase !== GamePhases.PLAY_CARDS) {
+            return {
+                success: false,
+                message: 'Can only draw cards during Play Cards phase'
+            };
+        }
+
+        const result = await this.cardInteractionSystem.drawCard();
+        
+        if (result) {
+            // Update turn state
+            this.updateTurnState('cardPlayed');
+            if (result.resourceChange > 0) {
+                this.updateTurnState('resourceGained', result.resourceChange);
+            }
+            if (result.pressureChange > 0) {
+                this.updateTurnState('pressureGained', result.pressureChange);
+            }
+
+            // Update all scenes with new state
+            this.updateScenes();
+
+            // Check for game over conditions
+            const gameOverCheck = this.checkGameOver();
+            if (gameOverCheck.isGameOver) {
+                return {
+                    success: true,
+                    gameOver: true,
+                    message: gameOverCheck.message,
+                    turnState: this.getTurnState(),
+                    finalState: gameOverCheck.finalState,
+                    isWin: gameOverCheck.isWin
+                };
+            }
+
+            return {
+                success: true,
+                ...result,
+                turnState: this.getTurnState()
+            };
+        }
+
+        return {
+            success: false,
+            message: 'No more cards in deck. Click End Phase to continue.',
+            turnState: this.getTurnState()
+        };
+    }
+
+    // Handle market card purchase during Build phase
+    handleCardPurchase(cardName) {
+        if (this.currentPhase !== GamePhases.BUILD) {
+            return {
+                success: false,
+                message: 'Can only purchase cards during Build phase'
+            };
+        }
+
+        const result = this.cardInteractionSystem.buildCard(cardName);
+        
+        if (result.success) {
+            // Update turn state
+            this.updateTurnState('cardPurchased');
+            this.updateTurnState('resourceSpent', result.card.cost);
+
+            // Update all scenes with new state
+            this.updateScenes();
+
+            // Get the discard pile scene to add the purchased card
+            const discardPileScene = this.sceneManager.getScene('DiscardPileScene');
+            if (discardPileScene) {
+                discardPileScene.addCard(result.card);
+            }
+
+            // Get the market scene to refresh the display
+            const marketScene = this.sceneManager.getScene('MarketScene');
+            if (marketScene) {
+                marketScene.refreshMarket();
+            }
+
+            return {
+                success: true,
+                ...result,
+                turnState: this.getTurnState()
+            };
+        }
+
+        return {
+            success: false,
+            message: result.message || 'Failed to purchase card',
+            turnState: this.getTurnState()
+        };
+    }
+
+    // Called when End Phase button is clicked
+    advancePhase() {
+        switch (this.currentPhase) {
+            case GamePhases.PLAY_CARDS:
+                this.currentPhase = GamePhases.BUILD;
+                break;
+
+            case GamePhases.BUILD:
+                this.currentPhase = GamePhases.EVOLVE;
+                break;
+
+            case GamePhases.EVOLVE:
+                this.currentPhase = GamePhases.END_TURN;
+                this.processEndTurn();
+                break;
+
+            case GamePhases.END_TURN:
+                if (this.currentTurn >= this.maxTurns) {
+                    this.currentPhase = GamePhases.GAME_OVER;
+                } else {
+                    this.startNewTurn();
+                }
+                break;
+        }
+
+        // Update all scenes with new phase
+        this.updateScenes();
+        
+        return {
+            success: true,
+            message: this.getCurrentPhaseMessage(),
+            phase: this.currentPhase,
+            turnState: this.getTurnState()
+        };
+    }
+
+    startNewTurn() {
+        // Save previous turn state to history
+        if (this.currentTurn > 0) {
+            const turnDuration = Date.now() - this.turnState.startTime;
+            this.turnHistory.push({
+                ...this.turnState,
+                turnNumber: this.currentTurn,
+                duration: turnDuration,
+                endState: this.getGameState()
+            });
+        }
+
+        // Increment turn and reset phase
+        this.currentTurn++;
+        this.currentPhase = GamePhases.PLAY_CARDS;
+
+        // Reset turn state
+        this.turnState = {
+            cardsPlayed: 0,
+            resourcesGained: 0,
+            resourcesSpent: 0,
+            pressureGained: 0,
+            cardsPurchased: 0,
+            cardsEvolved: 0,
+            startTime: Date.now()
+        };
+    }
+
+    // Get turn history
+    getTurnHistory() {
+        return [...this.turnHistory];
+    }
+
+    // Get current turn state
+    getTurnState() {
+        return {
+            ...this.turnState,
+            duration: Date.now() - this.turnState.startTime
+        };
+    }
+
+    // Update turn state based on action
+    updateTurnState(action, amount = 1) {
+        switch (action) {
+            case 'cardPlayed':
+                this.turnState.cardsPlayed += amount;
+                break;
+            case 'resourceGained':
+                this.turnState.resourcesGained += amount;
+                break;
+            case 'resourceSpent':
+                this.turnState.resourcesSpent += amount;
+                break;
+            case 'pressureGained':
+                this.turnState.pressureGained += amount;
+                break;
+            case 'cardPurchased':
+                this.turnState.cardsPurchased += amount;
+                break;
+            case 'cardEvolved':
+                this.turnState.cardsEvolved += amount;
+                break;
+        }
+    }
+
+    async processEndTurn() {
+        if (this.isProcessingEndTurn) return;
+        this.isProcessingEndTurn = true;
+
+        try {
+            // Get the discard pile scene for animations
+            const discardPileScene = this.sceneManager.getScene('DiscardPileScene');
+            
+        // Process end of turn actions
+            const endTurnResult = await this.cardInteractionSystem.endTurn();
+            
+            // Show turn summary if available
+            if (endTurnResult.turnSummary && discardPileScene) {
+                discardPileScene.showEndTurnSummary(endTurnResult.turnSummary);
+            }
+        
+        // Calculate total building points
+        this.buildingPoints = this.cardInteractionSystem.playerDeck.calculateTotalPoints();
+        
+        // Check for game over conditions
+        const gameOverCheck = this.checkGameOver();
+        if (gameOverCheck.isGameOver) {
+            // Game is over - stay in GAME_OVER phase
+            this.currentPhase = GamePhases.GAME_OVER;
+            
+            // Update messages with final state
+            const messagesScene = this.sceneManager.getScene('MessagesScene');
+            if (messagesScene) {
+                messagesScene.updatePhaseMessage(gameOverCheck.message);
+                messagesScene.showGameOverScreen(gameOverCheck.isWin, gameOverCheck.finalState);
+            }
+        } else {
+            // Continue to next turn
+            this.currentPhase = GamePhases.PLAY_CARDS;
+        }
+
+            // Update scenes with new state
+            this.updateScenes();
+        } finally {
+            this.isProcessingEndTurn = false;
+        }
+    }
+
+    updateScenes() {
+        // Get the current game state
+        const gameState = this.cardInteractionSystem.getGameState();
+        
+        // Update HUD: guard for missing scene or not yet initialized elements
+        const hudScene = this.sceneManager.getScene('HUDScene');
+        if (hudScene && typeof hudScene.updateDisplay === 'function' && hudScene.scene && hudScene.scene.isActive()) {
+            // Calculate resource change for display
+            const resourceChange = gameState.resourceChange || 
+                (this.currentPhase === GamePhases.BUILD && gameState.lastPurchaseCost ? -gameState.lastPurchaseCost : 0);
+
+            hudScene.updateDisplay(
+                gameState.resource,
+                gameState.pressure,
+                this.buildingPoints,
+                this.currentTurn,
+                resourceChange,
+                gameState.pressureChange
+            );
+        }
+
+        // Update Messages
+        const messagesScene = this.sceneManager.getScene('MessagesScene');
+        if (messagesScene && typeof messagesScene.updatePhaseMessage === 'function') {
+            messagesScene.updatePhaseMessage(this.getCurrentPhaseMessage());
+            messagesScene.updateButtons(this.currentPhase, gameState.resource);
+        }
+
+        // Update scene interactivity based on phase
+        this.updateSceneInteractivity();
+    }
+
+    updateSceneInteractivity() {
+        const deckScene = this.sceneManager.getScene('DeckScene');
+        const marketScene = this.sceneManager.getScene('MarketScene');
+        const playedCardsScene = this.sceneManager.getScene('PlayedCardsScene');
+
+        // Enable/disable scene interactions based on current phase
+        if (deckScene) {
+            deckScene.setInteractive(this.currentPhase === GamePhases.PLAY_CARDS);
+        }
+
+        if (marketScene) {
+            marketScene.setInteractive(this.currentPhase === GamePhases.BUILD);
+        }
+
+        if (playedCardsScene) {
+            playedCardsScene.setInteractive(this.currentPhase === GamePhases.EVOLVE);
+        }
+    }
+
+    checkGameOver() {
+        const gameState = this.cardInteractionSystem.getGameState();
+        
+        // Check win condition (completed 12 turns)
+        if (this.currentTurn >= this.maxTurns && this.currentPhase === GamePhases.END_TURN) {
+            this.currentPhase = GamePhases.GAME_OVER;
+            return {
+                isGameOver: true,
+                isWin: true,
+                message: `Congratulations! Your nation survived ${this.maxTurns} turns and achieved ${this.buildingPoints} Building Points!`,
+                finalState: {
+                    ...gameState,
+                    buildingPoints: this.buildingPoints,
+                    turnHistory: this.getTurnHistory()
+                }
+            };
+        }
+        
+        // Check bust condition (pressure >= 5)
+        if (gameState.pressure >= 5) {
+            this.currentPhase = GamePhases.GAME_OVER;
+            return {
+                isGameOver: true,
+                isWin: false,
+                message: 'Game Over! Your nation collapsed under too much pressure!',
+                finalState: {
+                    ...gameState,
+                    buildingPoints: this.buildingPoints,
+                    turnHistory: this.getTurnHistory()
+                }
+            };
+        }
+
+        return {
+            isGameOver: false
+        };
+    }
+
+    resetGame() {
+        this.currentPhase = GamePhases.PLAY_CARDS;
+        this.currentTurn = 1;
+        this.buildingPoints = 0;
+        this.isProcessingEndTurn = false;
+        // Reset card systems and scenes through scene manager
+        this.sceneManager.resetAllScenes();
+        this.updateScenes();
+    }
+}
