@@ -72,8 +72,10 @@ Each market card category has 4 copies available and can be evolved:
         *   Current turn pressure, displayed as "X/5" where X is current pressure (initialized at 0/5)
         *   Total building points from all cards in the deck.
         *   Current turn number (1-12).
-    *   `MessagesScene`: Displays contextual messages to the player (e.g., "Build Phase") and contains the "End Phase" button.
-        *   The "Build" and "Evolve!" buttons should be grayed out when the player has insufficient Resource
+     *   `MessagesScene`: Displays contextual messages to the player (e.g., "Build Phase") and contains the control buttons.
+        *   Must include: "End Phase"
+        *   Must include: "Evolve!" (visible in Evolve phase and enabled when a valid card is selected)
+        *   Must include: "Build" (visible in Build phase and enabled when a market card is selected and the player has sufficient Resource)
 3.  All scenes will be visible at all times, but only the relevant scene will be interactive based on the current game phase.
 
 ### 4.3. Gameplay Loop (12 Turns)
@@ -86,7 +88,7 @@ The game progresses through three main phases per turn, followed by an end-of-tu
     *   The drawn card is revealed in the `PlayedCardsScene`.
     *   The `Resource` and `Pressure` from the played card are added to the turn's total, displayed in the `HUDScene`.
     *   The player can continue drawing cards until they choose to stop (by clicking "End Phase") or their total pressure exceeds the limit (bust).
-2.  **Build Phase:** 
+ 2.  **Build Phase:** 
     *   The `MessagesScene` will display "Build Phase".
     *   The player uses the `Resource` gathered in the Play Cards phase to build new cards from the `MarketScene`.
     *   The `MarketScene` manages six fixed card slots and their card counts:
@@ -95,12 +97,16 @@ The game progresses through three main phases per turn, followed by an end-of-tu
         *   The positions of these 6 card categories are fixed throughout the game
         *   When a base card is evolved, it becomes a different card (e.g., Classroom → University) and does NOT replenish the base card count
         *   A slot becomes empty only when all 4 base cards of that category have been built
-    *   When the player clicks to build a card from the market (and has enough `Resource`):
+     *   When the player clicks to build a card from the market (and has enough `Resource`):
         *   The built card is added to the `DiscardPileScene`
         *   The `HUDScene` is updated to show the remaining `Resource`
         *   The `MarketScene` updates the base card count for that category (decrements by 1)
         *   If there are remaining base cards in that category's stack, a new card of the same type is immediately displayed in the same slot
         *   If that was the last base card of that category (count reaches 0), the slot remains empty for the rest of the game
+     *   The `MessagesScene` must show a "Build" button during the Build phase:
+         *   The player selects a market card slot (highlighted) in the `MarketScene`
+         *   If the player has sufficient `Resource`, the "Build" button becomes enabled
+         *   Clicking "Build" performs the purchase and updates all scenes
 3.  **Evolve Phase:** 
     *   The `MessagesScene` will display "Evolve Phase" and show an "Evolve!" button.
     *   The player can evolve cards that meet ALL of the following conditions:

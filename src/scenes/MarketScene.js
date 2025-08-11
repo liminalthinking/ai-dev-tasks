@@ -9,6 +9,7 @@ export class MarketScene extends BaseScene {
         this.gamePhaseManager = gamePhaseManager;
         this.marketSlots = [];
         this.isInteractive = false;
+        this.selectedSlotIndex = null;
     }
 
     preload() {
@@ -78,6 +79,7 @@ export class MarketScene extends BaseScene {
             const card = slot.first;
             card.setAlpha(enabled ? 1 : 0.7);
         });
+        if (!enabled) this.clearSelection();
     }
 
     refreshMarket() {
@@ -95,19 +97,21 @@ export class MarketScene extends BaseScene {
                 const resolvedKey = this.textures.exists(textureKey) ? textureKey : 'card-back';
                 cardDisplay.setTexture(resolvedKey);
                 cardDisplay.cardData = cardData;  // Store card data for reference
+                cardDisplay.cardKey = cardName;   // Also store the hyphen-case key for logic
 
                 // Show remaining count and cost
                 const count = marketState.supply[cardName];
                 if (count > 0) {
-                    // Update or create count text
-                    if (slot.length > 1) {
-                        slot.last.setText(`x${count}`);
-                    } else {
-                        const countText = this.add.text(30, 30, `x${count}`, {
+                    // Update or create count text (by name, not relying on order)
+                    let countText = slot.getByName('countText');
+                    if (!countText) {
+                        countText = this.add.text(30, 30, `x${count}`, {
                             fontSize: '14px',
                             fill: '#ffffff'
-                        });
+                        }).setName('countText');
                         slot.add(countText);
+                    } else {
+                        countText.setText(`x${count}`);
                     }
 
                     // TODO [UI Review - Task 6.1]: Current affordability indicators need improvement
@@ -116,17 +120,17 @@ export class MarketScene extends BaseScene {
                     // - Improve accessibility for color-blind users
                     
                     // Add or update cost display
-                    const costText = slot.getByName('costText') || this.add.text(-30, 30, '', {
-                        fontSize: '14px',
-                        fill: '#ffffff'
-                    }).setName('costText');
-                    
-                    costText.setText(`${cardData.cost}💰`);
-                    costText.setFill(cardData.cost <= currentResource ? '#00ff00' : '#ff0000');
-                    
-                    if (!slot.getByName('costText')) {
+                    let costText = slot.getByName('costText');
+                    if (!costText) {
+                        costText = this.add.text(-30, 30, `${cardData.cost}💰`, {
+                            fontSize: '14px',
+                            fill: '#ffffff'
+                        }).setName('costText');
                         slot.add(costText);
+                    } else {
+                        costText.setText(`${cardData.cost}💰`);
                     }
+                    costText.setFill(cardData.cost <= currentResource ? '#00ff00' : '#ff0000');
 
                     // TODO [UI Review - Task 6.1]: Review visual feedback approach
                     // Current implementation uses aggressive greying out
@@ -152,15 +156,32 @@ export class MarketScene extends BaseScene {
         const cardDisplay = slot.first;
         
         if (cardDisplay.cardData) {
-            const result = this.gamePhaseManager.handleCardPurchase(cardDisplay.cardData.name);
-            
-            if (!result.success && result.message) {
-                // Show error message in MessagesScene
-                const messagesScene = this.scene.get('MessagesScene');
-                if (messagesScene) {
-                    messagesScene.updatePhaseMessage(result.message);
+            // Select the slot, enable Build button via MessagesScene
+            this.selectedSlotIndex = slotIndex;
+            this.marketSlots.forEach((s, idx) => {
+                const img = s.first;
+                if (img) {
+                    if (idx === slotIndex) img.setTint(0x66ff66); else img.clearTint();
                 }
+            });
+            const messagesScene = this.scene.get('MessagesScene');
+            if (messagesScene) {
+                const resource = this.cardInteractionSystem.getCurrentResource();
+                messagesScene.updateButtons('build', resource);
             }
         }
+    }
+
+    getSelectedCardKey() {
+        if (this.selectedSlotIndex == null) return null;
+        const slot = this.marketSlots[this.selectedSlotIndex];
+        if (!slot) return null;
+        const cardDisplay = slot.first;
+        return cardDisplay && (cardDisplay.cardKey || (cardDisplay.cardData && cardDisplay.cardData.name)) || null;
+    }
+
+    clearSelection() {
+        this.selectedSlotIndex = null;
+        this.marketSlots.forEach(s => s.first && s.first.clearTint());
     }
 }

@@ -32,7 +32,8 @@ export class GamePhaseManager {
             resourcesSpent: 0,
             pressureGained: 0,
             cardsPurchased: 0,
-            cardsEvolved: 0
+            cardsEvolved: 0,
+            startTime: Date.now()
         };
     }
 
@@ -195,7 +196,7 @@ export class GamePhaseManager {
                 ...this.turnState,
                 turnNumber: this.currentTurn,
                 duration: turnDuration,
-                endState: this.getGameState()
+                endState: this.cardInteractionSystem.getGameState()
             });
         }
 
@@ -257,11 +258,12 @@ export class GamePhaseManager {
         this.isProcessingEndTurn = true;
 
         try {
-            // Get the discard pile scene for animations
+            // Get scenes for updates
             const discardPileScene = this.sceneManager.getScene('DiscardPileScene');
+            const playedCardsScene = this.sceneManager.getScene('PlayedCardsScene');
             
         // Process end of turn actions
-            const endTurnResult = await this.cardInteractionSystem.endTurn();
+            const endTurnResult = await this.cardInteractionSystem.endTurn(this.currentTurn);
             
             // Show turn summary if available
             if (endTurnResult.turnSummary && discardPileScene) {
@@ -285,11 +287,25 @@ export class GamePhaseManager {
             }
         } else {
             // Continue to next turn
-            this.currentPhase = GamePhases.PLAY_CARDS;
+            this.startNewTurn();
         }
 
             // Update scenes with new state
             this.updateScenes();
+            // Clear discard top if pile is empty after reshuffle
+            const discardScene = this.sceneManager.getScene('DiscardPileScene');
+            if (discardScene && endTurnResult.deckCounts.discardPile === 0) {
+                discardScene.clearDiscardPile();
+            }
+            if (playedCardsScene) {
+                // Clear played cards area at end of turn
+                playedCardsScene.clearSelection();
+                // Destroy all sprites in container
+                if (playedCardsScene.cardContainer) {
+                    playedCardsScene.cardContainer.removeAll(true);
+                }
+                playedCardsScene.playedCards = [];
+            }
         } finally {
             this.isProcessingEndTurn = false;
         }

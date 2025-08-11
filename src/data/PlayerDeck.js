@@ -130,11 +130,12 @@ export class PlayerDeck {
     // End turn: move all played cards to discard pile
     endTurn() {
         // Move all played cards to discard pile
+        const movedCount = this.playedCards.length;
         this.discardPile.push(...this.playedCards);
         this.playedCards = [];
 
         return {
-            discardedCount: this.playedCards.length,
+            discardedCount: movedCount,
             newDiscardPileCount: this.discardPile.length
         };
     }

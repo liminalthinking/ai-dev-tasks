@@ -203,7 +203,7 @@ export class CardInteractionSystem {
     }
 
     // End of turn cleanup
-    async endTurn() {
+    async endTurn(currentTurn) {
         // Get turn summary before reset
         const turnSummary = { ...this.turnState };
 
@@ -211,11 +211,18 @@ export class CardInteractionSystem {
         const pressureCards = new PressureCards();
         const pressureResult = pressureCards.addPressureCardTo(
             this.playerDeck.discardPile,
-            this.playerDeck.getCurrentTurn()
+            currentTurn
         );
 
         // Move all played cards to discard pile
         const discardResult = this.playerDeck.endTurn();
+
+        // Rebuild the draw pile: shuffle discard + existing draw to form new deck as per PRD
+        if (this.playerDeck.discardPile.length > 0) {
+            this.playerDeck.drawPile.push(...this.playerDeck.discardPile);
+            this.playerDeck.discardPile = [];
+            this.playerDeck.shuffleDeck();
+        }
 
         // Reset all state
         this.resetState();
@@ -223,7 +230,8 @@ export class CardInteractionSystem {
         return {
             turnSummary,
             pressureResult,
-            discardResult
+            discardResult,
+            deckCounts: this.playerDeck.getCounts()
         };
     }
 
