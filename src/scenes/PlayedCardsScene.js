@@ -51,7 +51,7 @@ export class PlayedCardsScene extends BaseScene {
                 const costText = this.add.text(-20, 40, `${cardData.evolveCost}💰`, {
                     fontSize: '14px',
                     fill: '#ffffff'
-                });
+                }).setName('costText');
                 infoContainer.add(costText);
 
                 // Show evolution arrow and target
@@ -147,9 +147,15 @@ export class PlayedCardsScene extends BaseScene {
         const hasResources = this.cardInteractionSystem.getCurrentResource() >= cardData.evolveCost;
 
         // Update cost text color based on resources
-        const costText = cardSprite.getByName('costText');
-        if (costText) {
-            costText.setFill(hasResources ? '#00ff00' : '#ff0000');
+        // Note: cost text is added to the separate infoContainer, not on the image sprite itself
+        // so getByName on the image will be undefined. Safely find the sibling container instead.
+        const spriteIndex = this.cardContainer.list.indexOf(cardSprite);
+        const sibling = spriteIndex >= 0 ? this.cardContainer.list[spriteIndex + 1] : null;
+        if (sibling && sibling.getByName) {
+            const costText = sibling.getByName('costText');
+            if (costText) {
+                costText.setFill(hasResources ? '#00ff00' : '#ff0000');
+            }
         }
 
         // Update card appearance based on evolvability
@@ -189,14 +195,14 @@ export class PlayedCardsScene extends BaseScene {
         
         // Clear previous selections
         this.playedCards.forEach(sprite => {
-            sprite.setStroke('#ffffff', 0);
+            sprite.clearTint();
             // Update evolution info display
             this.updateEvolutionInfo(sprite);
         });
         
         if (result.success) {
-            // Highlight selected card
-            cardSprite.setStroke('#00ff00', 2);
+            // Highlight selected card with a green tint
+            cardSprite.setTint(0x66ff66);
             
             // Update MessagesScene buttons
             const messagesScene = this.scene.get('MessagesScene');
@@ -210,7 +216,7 @@ export class PlayedCardsScene extends BaseScene {
     }
 
     clearSelection() {
-        this.playedCards.forEach(sprite => sprite.setStroke('#ffffff', 0));
+        this.playedCards.forEach(sprite => sprite.clearTint());
         this.hideEvolutionPreview();
     }
 }

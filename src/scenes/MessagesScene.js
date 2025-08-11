@@ -15,7 +15,7 @@ export class MessagesScene extends BaseScene {
 
         // Create message text in top-right corner
         this.messageText = this.add.text(
-            this.cameras.main.width - 320 - rightPadding, 
+            rightPadding, 
             topPadding, 
             '', 
             {
@@ -28,7 +28,7 @@ export class MessagesScene extends BaseScene {
 
         // Create End Phase button below the message
         this.endPhaseButton = this.add.text(
-            this.cameras.main.width - 100 - rightPadding,
+            this.cameras.main.width - 120 - rightPadding,
             this.messageText.y + this.messageText.height + 10,
             'End Phase', {
             fontSize: '16px',
@@ -49,7 +49,7 @@ export class MessagesScene extends BaseScene {
 
         // Create Evolve button (initially hidden)
         this.evolveButton = this.add.text(
-            this.cameras.main.width - 100 - rightPadding,
+            this.cameras.main.width - 120 - rightPadding,
             this.endPhaseButton.y + this.endPhaseButton.height + 10,
             'Evolve!', {
             fontSize: '16px',
@@ -78,7 +78,7 @@ export class MessagesScene extends BaseScene {
 
         // Create Play Again button (initially hidden)
         this.playAgainButton = this.add.text(
-            this.cameras.main.width - 100 - rightPadding,
+            this.cameras.main.width - 120 - rightPadding,
             this.endPhaseButton.y,  // Same Y as End Phase button since they're mutually exclusive
             'Play Again', {
             fontSize: '16px',

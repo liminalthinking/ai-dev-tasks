@@ -14,8 +14,9 @@ export class BaseScene extends Phaser.Scene {
 
         const { bounds, label } = this.config;
 
-        // Render this scene into its own panel using a camera viewport,
-        // and scroll the camera to the world's subsection defined by bounds.
+        // Render this scene into its own panel using a camera viewport.
+        // Keep camera scroll at (0,0) so all scene content uses local coordinates
+        // within [0..bounds.width, 0..bounds.height].
         this.cameras.main.setViewport(bounds.x, bounds.y, bounds.width, bounds.height);
         this.cameras.main.setScroll(0, 0);
 
@@ -36,7 +37,7 @@ export class BaseScene extends Phaser.Scene {
     }
 
     addSceneLabel(text) {
-        // Place label inside the top-left of the scene viewport
+        // Place label inside the top-left of the scene viewport (local coords)
         const label = this.add.text(
             4,
             4,
@@ -51,7 +52,7 @@ export class BaseScene extends Phaser.Scene {
         const { debugColors } = SCENE_STYLES;
         const graphics = this.add.graphics();
         
-        // Draw filled background
+        // Draw filled background in local coordinates
         graphics.fillStyle(debugColors.background, debugColors.opacity);
         graphics.fillRect(0, 0, bounds.width, bounds.height);
         

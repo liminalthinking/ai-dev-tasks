@@ -52,8 +52,10 @@ export const SCENE_CONFIG = {
         bounds: {
             x: 10,
             y: 60,
-            width: GAME_WIDTH - 220,
-            height: 180
+            // Width reduced to expand Messages; keep 10px gap between scenes
+            width: GAME_WIDTH - 410,
+            // Middle row height equal to bottom row height (split remaining space evenly)
+            height: 320
         },
         label: 'Market'
     },
@@ -62,9 +64,9 @@ export const SCENE_CONFIG = {
         zIndex: 5,
         bounds: {
             x: 180,
-            y: 250,
+            y: 390,
             width: GAME_WIDTH - 360,
-            height: GAME_HEIGHT - 260
+            height: 320
         },
         label: 'Played Cards'
     },
@@ -73,9 +75,9 @@ export const SCENE_CONFIG = {
         zIndex: 5,
         bounds: {
             x: 10,
-            y: 250,
+            y: 390,
             width: 160,
-            height: GAME_HEIGHT - 260
+            height: 320
         },
         label: 'Deck'
     },
@@ -84,9 +86,9 @@ export const SCENE_CONFIG = {
         zIndex: 5,
         bounds: {
             x: GAME_WIDTH - 170,
-            y: 250,
+            y: 390,
             width: 160,
-            height: GAME_HEIGHT - 260
+            height: 320
         },
         label: 'Discard'
     },
@@ -94,10 +96,11 @@ export const SCENE_CONFIG = {
         key: 'MessagesScene',
         zIndex: 10,
         bounds: {
-            x: GAME_WIDTH - 200,
+            // Expanded by 100% (from 190 to 380) and aligned to right with 10px margin
+            x: GAME_WIDTH - 390,
             y: 60,
-            width: 190,
-            height: 180
+            width: 380,
+            height: 320
         },
         label: 'Messages'
     }
