@@ -13,9 +13,15 @@ export class PlayedCardsScene extends BaseScene {
         // Create a container centered within the configured bounds
         const { bounds } = this.config;
         this.cardContainer = this.add.container(
-            bounds.width / 2,
+            0,
             bounds.height / 2
         );
+        // Diagnostics: toggle to show name/texture above each card
+        this.enableDiagnostics = true;
+        this.cardLeftPadding = 20;
+        this.cardOverlapRatio = 0.3; // 30% step from left border
+        this.cardDisplayWidth = null;
+        this.cardStep = null;
         this.playedCards = [];
     }
 
@@ -28,20 +34,21 @@ export class PlayedCardsScene extends BaseScene {
     }
 
     addCard(cardData) {
-        const x = this.playedCards.length * 130;  // Space cards horizontally
-        
+        // Determine stacked X position using overlap
+        const index = this.playedCards.length;
+
         // Create card sprite
         const textureKey = cardData.imageAsset;
         const resolvedKey = this.textures.exists(textureKey) ? textureKey : 'card-back';
-        const cardSprite = this.add.image(x, 0, resolvedKey)
+        const cardSprite = this.add.image(0, 0, resolvedKey)
             .setOrigin(0.5)
-            .setScale(0.4);  // Adjust scale as needed
+            .setScale(0.52);  // Increased size by 30%
         
         // Store card data with sprite
         cardSprite.cardData = cardData;
 
         // Create evolution info container
-        const infoContainer = this.add.container(x, 0);
+        const infoContainer = this.add.container(0, 0);
         
         // Add evolution cost if card can evolve
         if (cardData.evolvesTo) {
@@ -70,30 +77,58 @@ export class PlayedCardsScene extends BaseScene {
         }
 
         // Make card interactive for evolution
-        cardSprite.setInteractive()
+        cardSprite.setInteractive({ useHandCursor: true })
             .on('pointerover', () => {
+                // Show magnified hover preview
+                this.showHoverPreview(cardSprite, 'top-right');
+                // Show evolution preview if available and interactive
                 if (this.isInteractive) {
                     const canEvolve = this.cardInteractionSystem.canEvolveCard(cardData.name);
-                    if (canEvolve) {
-                        cardSprite.setTint(0xcccccc);
-                        // Show evolution preview if available
-                        this.showEvolutionPreview(cardData, cardSprite.x, cardSprite.y);
-                    }
+                    if (!canEvolve) return;
+                    // Do not grey out here; just show evolution preview
+                    this.showEvolutionPreview(cardData, cardSprite.x, cardSprite.y);
                 }
             })
             .on('pointerout', () => {
-                cardSprite.clearTint();
+                this.hideHoverPreview(cardSprite);
                 this.hideEvolutionPreview();
             })
             .on('pointerdown', () => {
-                if (this.isInteractive) {
-                    this.handleCardClick(cardSprite);
-                }
+                if (!this.isInteractive) return;
+                // Delegate to existing selection logic
+                this.handleCardClick(cardSprite);
             });
 
         // Add to container and tracking array
+        // Compute display width and step on first card
+        if (!this.cardDisplayWidth) {
+            this.cardDisplayWidth = cardSprite.width * cardSprite.scaleX;
+            this.cardStep = this.cardDisplayWidth * this.cardOverlapRatio;
+        }
+
+        // Position this card with overlap from the left padding
+        const halfWidth = this.cardDisplayWidth / 2;
+        cardSprite.x = this.cardLeftPadding + halfWidth + (index * this.cardStep);
+        infoContainer.x = cardSprite.x;
+
+        // Ensure newer cards render on top
         this.cardContainer.add(cardSprite);
         this.cardContainer.add(infoContainer);
+        cardSprite.setDepth(10 + index);
+        infoContainer.setDepth(10 + index);
+
+        // Diagnostics overlay showing underlying name and image key
+        if (this.enableDiagnostics) {
+            const diag = this.add.text(0, -110, `${cardData.name} | img:${resolvedKey}`, {
+                fontSize: '10px',
+                fill: '#ff66ff',
+                backgroundColor: '#1a1a1a'
+            }).setOrigin(0.5);
+            diag.x = cardSprite.x;
+            this.cardContainer.add(diag);
+            cardSprite.diagText = diag;
+            diag.setDepth(11 + index);
+        }
         this.playedCards.push(cardSprite);
 
         // Adjust container position if needed
@@ -101,6 +136,39 @@ export class PlayedCardsScene extends BaseScene {
 
         // Update evolution info display
         this.updateEvolutionInfo(cardSprite);
+    }
+
+    showHoverPreview(cardSprite) {
+        if (!this.hoverPreviews) this.hoverPreviews = new Map();
+        this.hideHoverPreview(cardSprite);
+
+        const previewScale = (cardSprite.scale || 0.52) * 1.6;
+        const { bounds } = this.config;
+        const centerX = bounds.x + this.cardContainer.x + cardSprite.x;
+        const centerY = bounds.y + this.cardContainer.y + cardSprite.y;
+        const cardW = cardSprite.width * cardSprite.scaleX;
+        const cardH = cardSprite.height * cardSprite.scaleY;
+
+        const overlay = this.scene.get('OverlayScene');
+        if (!overlay || !overlay.showCardPreview) return;
+        const id = overlay.showCardPreview({
+            textureKey: cardSprite.texture.key,
+            centerX,
+            centerY,
+            cardWidth: cardW,
+            cardHeight: cardH,
+            preferredAnchor: 'bottom-left',
+            scaleFactor: 1.6
+        });
+        this.hoverPreviews.set(cardSprite, id);
+    }
+
+    hideHoverPreview(cardSprite) {
+        if (!this.hoverPreviews) return;
+        const overlay = this.scene.get('OverlayScene');
+        const id = this.hoverPreviews.get(cardSprite);
+        if (overlay && id) overlay.hideCardPreview(id);
+        this.hoverPreviews.delete(cardSprite);
     }
 
     showEvolutionPreview(cardData, x, y) {
@@ -117,7 +185,7 @@ export class PlayedCardsScene extends BaseScene {
             // Add evolved card preview
             const preview = this.add.image(x, y - 100, evolvedCard.imageAsset)
                 .setOrigin(0.5)
-                .setScale(0.3)
+                .setScale(0.39)
                 .setAlpha(0.8);
 
             // Add stats comparison
@@ -162,7 +230,7 @@ export class PlayedCardsScene extends BaseScene {
         if (this.isInteractive) {
             cardSprite.setAlpha(canEvolve ? 1 : 0.7);
             if (!canEvolve) {
-                cardSprite.setTint(0x666666);
+                cardSprite.clearTint();
             }
         }
     }
@@ -180,11 +248,20 @@ export class PlayedCardsScene extends BaseScene {
     adjustLayout() {
         // Reposition remaining cards
         this.playedCards.forEach((cardSprite, index) => {
-            cardSprite.x = index * 130;
+            // Recompute in case scale changed
+            if (!this.cardDisplayWidth) {
+                this.cardDisplayWidth = cardSprite.width * cardSprite.scaleX;
+                this.cardStep = this.cardDisplayWidth * this.cardOverlapRatio;
+            }
+            const halfWidth = this.cardDisplayWidth / 2;
+            cardSprite.x = this.cardLeftPadding + halfWidth + (index * this.cardStep);
             // Also move the associated info container
             const infoContainer = this.cardContainer.list[this.cardContainer.list.indexOf(cardSprite) + 1];
             if (infoContainer) {
                 infoContainer.x = cardSprite.x;
+            }
+            if (cardSprite.diagText) {
+                cardSprite.diagText.x = cardSprite.x;
             }
         });
     }

@@ -18,7 +18,7 @@ export class DeckScene extends BaseScene {
     createScene() {
         // Position deck in the center of its designated area
         const { bounds } = this.config;
-        const cardScale = 0.4;
+        const cardScale = 0.52; // 30% larger than before
         
         this.deckDisplay = this.add.image(
             (bounds.width / 2),  // Center of scene viewport
@@ -30,14 +30,6 @@ export class DeckScene extends BaseScene {
 
         // Set up click handling
         this.deckDisplay.setInteractive({ useHandCursor: true })
-            .on('pointerover', () => {
-                if (this.isInteractive) {
-                    this.deckDisplay.setTint(0xcccccc);
-                }
-            })
-            .on('pointerout', () => {
-                this.deckDisplay.clearTint();
-            })
             .on('pointerdown', async () => {
                 if (this.isInteractive) {
                     await this.handleDeckClick();
@@ -48,6 +40,8 @@ export class DeckScene extends BaseScene {
         const isPlayCards = this.gamePhaseManager && this.gamePhaseManager.getCurrentPhase && this.gamePhaseManager.getCurrentPhase() === 'playCards';
         this.setInteractive(!!isPlayCards);
     }
+
+    // Hover preview intentionally disabled for DeckScene per UX request
 
     setInteractive(enabled) {
         this.isInteractive = enabled;

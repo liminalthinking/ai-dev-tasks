@@ -99,16 +99,19 @@ export class CardInteractionSystem {
 
     // Evolve Phase interactions
     canEvolveCard(cardName) {
-        const card = CardUtils.getCardData(cardName);
+        const key = CardUtils.resolveKey(cardName);
+        const card = key ? CardUtils.getCardData(key) : null;
         return card && CardUtils.canEvolve(card.name);
     }
 
     getEvolvedCardData(cardName) {
-        return CardUtils.getEvolvedCard(cardName);
+        const key = CardUtils.resolveKey(cardName);
+        return key ? CardUtils.getEvolvedCard(key) : null;
     }
 
     selectCardForEvolution(card) {
-        if (!this.canEvolveCard(card.name)) {
+        const key = CardUtils.resolveKey(card.name);
+        if (!key || !this.canEvolveCard(key)) {
             return {
                 success: false,
                 message: 'Card cannot be evolved'
@@ -123,15 +126,15 @@ export class CardInteractionSystem {
             };
         }
 
-        this.selectedCard = card;
-        const canAfford = this.currentResource >= card.evolveCost;
+        this.selectedCard = { ...CardUtils.getCardData(key) };
+        const canAfford = this.currentResource >= this.selectedCard.evolveCost;
 
         return {
             success: true,
             card: this.selectedCard,
             evolveCost: card.evolveCost,
             canAffordEvolution: canAfford,
-            evolvedCard: this.getEvolvedCardData(card.name),
+            evolvedCard: this.getEvolvedCardData(key),
             message: canAfford ? null : 'Insufficient resources for evolution'
         };
     }

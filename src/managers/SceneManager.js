@@ -40,5 +40,6 @@ export class SceneManager {
         this.startScene('PlayedCardsScene', this.scenes['PlayedCardsScene']);
         this.startScene('MarketScene', this.scenes['MarketScene']);
         this.startScene('DiscardPileScene', this.scenes['DiscardPileScene']);
+        this.startScene('OverlayScene', this.scenes['OverlayScene']);
     }
 }

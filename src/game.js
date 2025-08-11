@@ -13,6 +13,7 @@ import { DeckScene } from './scenes/DeckScene';
 import { PlayedCardsScene } from './scenes/PlayedCardsScene';
 import { MarketScene } from './scenes/MarketScene';
 import { DiscardPileScene } from './scenes/DiscardPileScene';
+import { OverlayScene } from './scenes/OverlayScene';
 
 import { GAME_WIDTH, GAME_HEIGHT } from './config/SceneConfig';
 
@@ -55,6 +56,7 @@ class Game extends Phaser.Game {
         this.sceneManager.startScene('PlayedCardsScene', new PlayedCardsScene(this.cardInteractionSystem, this.phaseManager));
         this.sceneManager.startScene('MarketScene', new MarketScene(this.cardInteractionSystem, this.phaseManager));
         this.sceneManager.startScene('DiscardPileScene', new DiscardPileScene());
+        this.sceneManager.startScene('OverlayScene', new OverlayScene());
 
         // Scenes will handle enabling interactivity on their own create hooks
     }

@@ -10,6 +10,7 @@ export class MarketScene extends BaseScene {
         this.marketSlots = [];
         this.isInteractive = false;
         this.selectedSlotIndex = null;
+        this.hoverPreviews = new Map();
     }
 
     preload() {
@@ -17,17 +18,60 @@ export class MarketScene extends BaseScene {
         AssetLoader.preloadCardImages(this);
     }
 
+    showHoverPreview(cardImage) {
+        // Remove existing preview for this card
+        this.hideHoverPreview(cardImage);
+
+        const previewScale = (cardImage.scale || 0.52) * 1.6; // 60% larger
+        const slot = cardImage.parentContainer;
+        const { bounds } = this.config;
+        const centerX = bounds.x + slot.x + cardImage.x;
+        const centerY = bounds.y + slot.y + cardImage.y;
+        const cardW = cardImage.width * cardImage.scaleX;
+        const cardH = cardImage.height * cardImage.scaleY;
+
+        // Send to OverlayScene with screen coords
+        const overlay = this.scene.get('OverlayScene');
+        if (!overlay || !overlay.showCardPreview) return;
+        const id = overlay.showCardPreview({
+            textureKey: cardImage.texture.key,
+            centerX,
+            centerY,
+            cardWidth: cardW,
+            cardHeight: cardH,
+            preferredAnchor: 'bottom-left',
+            scaleFactor: 1.6
+        });
+        this.hoverPreviews.set(cardImage, id);
+    }
+
+    hideHoverPreview(cardImage) {
+        const overlay = this.scene.get('OverlayScene');
+        const id = this.hoverPreviews.get(cardImage);
+        if (overlay && id) overlay.hideCardPreview(id);
+        this.hoverPreviews.delete(cardImage);
+    }
+
     createScene() {
 
         // Create 6 market slots in a single row
         const { bounds } = this.config;
-        const slotWidth = (bounds.width - 100) / 6;  // Adjust card size to fit scene width
-        const gap = 10;  // Gap between cards
-        const startX = 50;  // inside viewport
+        const numCards = 6;
+        const padding = 20; // maintain 20px padding on both sides
+        const cardScale = 0.52; // 30% larger than previous 0.4
+
+        // Estimate card display width from the card-back texture
+        const baseTexture = this.textures.get('card-back');
+        const baseWidth = baseTexture && baseTexture.getSourceImage() ? baseTexture.getSourceImage().width : 150;
+        const cardDisplayWidth = baseWidth * cardScale;
+
+        // Compute evenly spaced centers so card edges keep 20px side padding
+        const startCenterX = padding + (cardDisplayWidth / 2);
+        const step = (bounds.width - (2 * padding) - cardDisplayWidth) / (numCards - 1);
         const y = (bounds.height / 2);  // center in viewport
 
         for (let i = 0; i < 6; i++) {
-            const x = startX + (i * (slotWidth + gap));
+            const x = startCenterX + (i * step);
             
             const slot = this.add.container(x, y);
             this.marketSlots.push(slot);
@@ -35,29 +79,19 @@ export class MarketScene extends BaseScene {
             // Add card display with card back initially
             const card = this.add.image(0, 0, 'card-back')
                 .setOrigin(0.5)
-                .setScale(0.4);  // Adjust scale as needed
+                .setScale(cardScale);  // Increased card size by 30%
 
             slot.add(card);
 
             // Make slot interactive
             card.setInteractive()
                 .on('pointerover', () => {
-                    if (this.isInteractive && card.cardData) {
-                        const canAfford = this.cardInteractionSystem.getCurrentResource() >= card.cardData.cost;
-                        if (canAfford) {
-                            card.setTint(0xcccccc);
-                        }
+                    if (card.cardData) {
+                        this.showHoverPreview(card);
                     }
                 })
                 .on('pointerout', () => {
-                    if (card.cardData) {
-                        const canAfford = this.cardInteractionSystem.getCurrentResource() >= card.cardData.cost;
-                        if (canAfford) {
-                            card.clearTint();
-                        } else {
-                            card.setTint(0x666666);
-                        }
-                    }
+                    this.hideHoverPreview(card);
                 })
                 .on('pointerdown', () => {
                     if (this.isInteractive) {

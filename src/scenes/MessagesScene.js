@@ -26,16 +26,14 @@ export class MessagesScene extends BaseScene {
             }
         );
 
-        // Create End Phase button below the message
-        this.endPhaseButton = this.add.text(
-            this.cameras.main.width - 120 - padding,
-            this.messageText.y + this.messageText.height + 10,
-            'End Phase', {
+        // Create End Phase button; position finalized after all buttons are created
+        this.endPhaseButton = this.add.text(0, 0, 'End Phase', {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#444444',
             padding: { x: 10, y: 5 }
         })
+        .setOrigin(0.5)
         .setInteractive()
         .on('pointerover', () => {
             this.endPhaseButton.setBackgroundColor('#666666');
@@ -49,14 +47,15 @@ export class MessagesScene extends BaseScene {
 
         // Create Evolve button (initially hidden)
         this.evolveButton = this.add.text(
-            this.cameras.main.width - 120 - padding,
-            this.endPhaseButton.y + this.endPhaseButton.height + 10,
+            0,
+            0,
             'Evolve!', {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#444444',
             padding: { x: 10, y: 5 }
         })
+        .setOrigin(0.5)
         .setInteractive()
         .on('pointerover', () => {
             if (this.evolveButton.active) {
@@ -78,14 +77,15 @@ export class MessagesScene extends BaseScene {
 
         // Create Build button (visible during Build phase)
         this.buildButton = this.add.text(
-            this.cameras.main.width - 120 - padding,
-            this.evolveButton.y + this.evolveButton.height + 10,
+            0,
+            0,
             'Build', {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#444444',
             padding: { x: 10, y: 5 }
         })
+        .setOrigin(0.5)
         .setInteractive()
         .on('pointerover', () => {
             if (this.buildButton.active) {
@@ -127,8 +127,29 @@ export class MessagesScene extends BaseScene {
         });
         this.playAgainButton.visible = false;
 
+        // Position buttons centered and ~20% from bottom
+        this.layoutButtons();
+
         // Set initial message
         this.updatePhaseMessage(this.phaseManager.getCurrentPhaseMessage());
+    }
+
+    layoutButtons() {
+        const w = this.cameras.main.width;
+        const h = this.cameras.main.height;
+        const centerX = w / 2;
+        const bottomY = h * 0.8; // 20% from bottom
+        const verticalGap = 12;
+
+        // Build/Evolve at same Y, End Phase below them (consistent across phases)
+        this.buildButton.x = centerX;
+        this.evolveButton.x = centerX;
+        this.endPhaseButton.x = centerX;
+
+        const topY = bottomY - (this.endPhaseButton.height + verticalGap);
+        this.buildButton.y = topY;
+        this.evolveButton.y = topY;
+        this.endPhaseButton.y = bottomY;
     }
 
     updatePhaseMessage(message) {
@@ -147,7 +168,7 @@ export class MessagesScene extends BaseScene {
         
         // Update Evolve button state based on selected card and resources
         const cardInteractionSystem = this.phaseManager.cardInteractionSystem;
-        if (currentPhase === GamePhases.EVOLVE && cardInteractionSystem.selectedCard) {
+        if (currentPhase === GamePhases.EVOLVE) {
             this.evolveButton.active = cardInteractionSystem.canEvolveSelectedCard();
             this.evolveButton.setBackgroundColor(this.evolveButton.active ? '#444444' : '#222222');
             this.evolveButton.setFill(this.evolveButton.active ? '#ffffff' : '#666666');
@@ -169,6 +190,9 @@ export class MessagesScene extends BaseScene {
         this.buildButton.active = this.buildButton.visible && canBuild;
         this.buildButton.setBackgroundColor(this.buildButton.active ? '#444444' : '#222222');
         this.buildButton.setFill(this.buildButton.active ? '#ffffff' : '#666666');
+
+        // Ensure consistent positions after any visibility changes
+        this.layoutButtons();
     }
 
     handleEndPhaseClick() {

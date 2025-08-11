@@ -42,7 +42,7 @@ export const SCENE_CONFIG = {
             x: 10,
             y: 10,
             width: GAME_WIDTH - 20,
-            height: 40
+            height: 80
         },
         label: 'HUD'
     },
@@ -51,11 +51,11 @@ export const SCENE_CONFIG = {
         zIndex: 5,
         bounds: {
             x: 10,
-            y: 60,
+            y: 100,
             // Width reduced to expand Messages; keep 10px gap between scenes
             width: GAME_WIDTH - 410,
             // Middle row height equal to bottom row height (split remaining space evenly)
-            height: 320
+            height: 300
         },
         label: 'Market'
     },
@@ -63,10 +63,10 @@ export const SCENE_CONFIG = {
         key: 'PlayedCardsScene',
         zIndex: 5,
         bounds: {
-            x: 180,
-            y: 390,
-            width: GAME_WIDTH - 360,
-            height: 320
+            x: 260,
+            y: 410,
+            width: GAME_WIDTH - 520,
+            height: 300
         },
         label: 'Played Cards'
     },
@@ -75,9 +75,9 @@ export const SCENE_CONFIG = {
         zIndex: 5,
         bounds: {
             x: 10,
-            y: 390,
-            width: 160,
-            height: 320
+            y: 410,
+            width: 240,
+            height: 300
         },
         label: 'Deck'
     },
@@ -85,10 +85,10 @@ export const SCENE_CONFIG = {
         key: 'DiscardPileScene',
         zIndex: 5,
         bounds: {
-            x: GAME_WIDTH - 170,
-            y: 390,
-            width: 160,
-            height: 320
+            x: GAME_WIDTH - 250,
+            y: 410,
+            width: 240,
+            height: 300
         },
         label: 'Discard'
     },
@@ -98,9 +98,9 @@ export const SCENE_CONFIG = {
         bounds: {
             // Expanded by 100% (from 190 to 380) and aligned to right with 10px margin
             x: GAME_WIDTH - 390,
-            y: 60,
+            y: 100,
             width: 380,
-            height: 320
+            height: 300
         },
         label: 'Messages'
     }

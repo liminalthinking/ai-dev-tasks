@@ -216,8 +216,17 @@ export const CardUtils = {
 
     // Get evolved version of a card
     getEvolvedCard(cardName) {
-        const card = CardData[cardName];
+        const key = this.resolveKey(cardName) || cardName;
+        const card = CardData[key];
         return card && card.evolvesTo ? CardData[card.evolvesTo] : null;
+    },
+
+    // Resolve a CardData key from a human-readable display name.
+    // Returns the original input if it is already a valid key.
+    resolveKey(nameOrKey) {
+        if (nameOrKey in CardData) return nameOrKey;
+        const entry = Object.entries(CardData).find(([_key, val]) => val.name === nameOrKey);
+        return entry ? entry[0] : null;
     },
 
     // Check if a card is a base (non-evolved) market card
