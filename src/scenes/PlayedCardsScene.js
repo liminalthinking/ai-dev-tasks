@@ -27,9 +27,12 @@ export class PlayedCardsScene extends BaseScene {
 
     setInteractive(enabled) {
         this.isInteractive = enabled;
+        if (!this.playedCards) return;
         this.playedCards.forEach(cardSprite => {
             const canEvolve = cardSprite.cardData && this.cardInteractionSystem.canEvolveCard(cardSprite.cardData.name);
-            cardSprite.setAlpha(enabled && canEvolve ? 1 : 0.7);
+            if (cardSprite && cardSprite.setAlpha) {
+                cardSprite.setAlpha(enabled && canEvolve ? 1 : 0.7);
+            }
         });
     }
 

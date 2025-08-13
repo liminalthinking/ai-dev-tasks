@@ -4,15 +4,11 @@ export class BackgroundScene extends Phaser.Scene {
     }
 
     preload() {
-        // Load background image
+        // Load background image and all card textures centrally
         this.load.image('background', 'assets/images/background.png');
-        // Preload all card textures once centrally
         const { AssetLoader } = require('../utils/AssetLoader');
-        // Guard to avoid duplicate load events spamming warnings if HMR retriggers preload
-        if (!this._assetsLoaded) {
-            AssetLoader.preloadCardImages(this);
-            this._assetsLoaded = true;
-        }
+        // Queue textures; AssetLoader internally skips already-loaded keys.
+        AssetLoader.preloadCardImages(this);
     }
 
     create() {

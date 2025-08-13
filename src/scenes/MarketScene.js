@@ -14,8 +14,10 @@ export class MarketScene extends BaseScene {
     }
 
     preload() {
-        // Ensure card images are available; loader skips keys that already exist
-        AssetLoader.preloadCardImages(this);
+        // Ensure card-back placeholder is available for initial slot render
+        if (!this.textures.exists('card-back')) {
+            this.load.image('card-back', 'assets/images/card-back.png');
+        }
     }
 
     showHoverPreview(cardImage) {
@@ -109,9 +111,13 @@ export class MarketScene extends BaseScene {
 
     setInteractive(enabled) {
         this.isInteractive = enabled;
+        // If createScene hasn't run yet, slots may be empty
+        if (!this.marketSlots || this.marketSlots.length === 0) return;
         this.marketSlots.forEach(slot => {
-            const card = slot.first;
-            card.setAlpha(enabled ? 1 : 0.7);
+            const card = slot && slot.first;
+            if (card && card.setAlpha) {
+                card.setAlpha(enabled ? 1 : 0.7);
+            }
         });
         if (!enabled) this.clearSelection();
     }

@@ -48,15 +48,19 @@ class Game extends Phaser.Game {
         // Initialize phase manager
         this.phaseManager = new GamePhaseManager(this.cardInteractionSystem, this.sceneManager);
 
-        // Start scenes in order
-        this.sceneManager.startScene('BackgroundScene', new BackgroundScene());
-        this.sceneManager.startScene('HUDScene', new HUDScene(this.phaseManager));
-        this.sceneManager.startScene('MessagesScene', new MessagesScene(this.phaseManager));
-        this.sceneManager.startScene('DeckScene', new DeckScene(this.cardInteractionSystem, this.phaseManager));
-        this.sceneManager.startScene('PlayedCardsScene', new PlayedCardsScene(this.cardInteractionSystem, this.phaseManager));
-        this.sceneManager.startScene('MarketScene', new MarketScene(this.cardInteractionSystem, this.phaseManager));
-        this.sceneManager.startScene('DiscardPileScene', new DiscardPileScene());
-        this.sceneManager.startScene('OverlayScene', new OverlayScene());
+        // Start scenes in an order that guarantees textures are loaded before
+        // dependent scenes create images. Wait for BackgroundScene loader to
+        // complete, then start the rest.
+        this.sceneManager.startScenesOrdered([
+            ['BackgroundScene', new BackgroundScene()],
+            ['HUDScene', new HUDScene(this.phaseManager)],
+            ['MessagesScene', new MessagesScene(this.phaseManager)],
+            ['DeckScene', new DeckScene(this.cardInteractionSystem, this.phaseManager)],
+            ['PlayedCardsScene', new PlayedCardsScene(this.cardInteractionSystem, this.phaseManager)],
+            ['MarketScene', new MarketScene(this.cardInteractionSystem, this.phaseManager)],
+            ['DiscardPileScene', new DiscardPileScene()],
+            ['OverlayScene', new OverlayScene()]
+        ]);
 
         // Scenes will handle enabling interactivity on their own create hooks
     }

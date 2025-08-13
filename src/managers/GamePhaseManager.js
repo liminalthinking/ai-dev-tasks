@@ -7,11 +7,11 @@ export const GamePhases = {
 };
 
 export const PhaseMessages = {
-    [GamePhases.PLAY_CARDS]: "Click the top of deck to play the next card. Click the End Phase button to move to the next phase",
-    [GamePhases.BUILD]: "Buy cards from the MARKET with available resources. Click the End Phase button to move to the next phase",
-    [GamePhases.EVOLVE]: "Evolve cards from the Played Cards area, Click the End Phase button to end this turn",
+    [GamePhases.PLAY_CARDS]: "Click the top of deck to play the next card. \n\nClick the End Phase button to move to the next phase.",
+    [GamePhases.BUILD]: "Buy cards from the MARKET with available resources. \n\nClick the End Phase button to move to the next phase.",
+    [GamePhases.EVOLVE]: "Evolve cards from the Played Cards area, \n\nClick the End Phase button to end this turn.",
     [GamePhases.END_TURN]: "Processing end of turn...",
-    [GamePhases.GAME_OVER]: "Congratulations! Your nation survived 12 turns and achieved {points} Building Points!"
+    [GamePhases.GAME_OVER]: "Congratulations! \n\nYour nation survived 12 turns and achieved {points} Building Points!"
 };
 
 export class GamePhaseManager {
@@ -340,7 +340,13 @@ export class GamePhaseManager {
         }
 
         // Update scene interactivity based on phase
-        this.updateSceneInteractivity();
+        // Defer one tick to avoid calling setInteractive before scenes' create hooks finish
+        const timer = this.sceneManager.getScene('BackgroundScene');
+        if (timer && timer.time && typeof timer.time.addEvent === 'function') {
+            timer.time.addEvent({ delay: 0, callback: () => this.updateSceneInteractivity() });
+        } else {
+            this.updateSceneInteractivity();
+        }
     }
 
     updateSceneInteractivity() {
@@ -349,15 +355,15 @@ export class GamePhaseManager {
         const playedCardsScene = this.sceneManager.getScene('PlayedCardsScene');
 
         // Enable/disable scene interactions based on current phase
-        if (deckScene) {
+        if (deckScene && typeof deckScene.setInteractive === 'function') {
             deckScene.setInteractive(this.currentPhase === GamePhases.PLAY_CARDS);
         }
 
-        if (marketScene) {
+        if (marketScene && typeof marketScene.setInteractive === 'function') {
             marketScene.setInteractive(this.currentPhase === GamePhases.BUILD);
         }
 
-        if (playedCardsScene) {
+        if (playedCardsScene && typeof playedCardsScene.setInteractive === 'function') {
             playedCardsScene.setInteractive(this.currentPhase === GamePhases.EVOLVE);
         }
     }
@@ -407,6 +413,8 @@ export class GamePhaseManager {
         this.isProcessingEndTurn = false;
         // Reset card systems and scenes through scene manager
         this.sceneManager.resetAllScenes();
-        this.updateScenes();
+        // Do not call updateScenes immediately; scenes are restarting and
+        // UI elements may not exist yet. The restarted scenes will render
+        // initial state on their own create hooks.
     }
 }

@@ -9,7 +9,7 @@ export class DeckScene extends BaseScene {
     }
 
     preload() {
-        // Load card back image if not already loaded
+        // Ensure card-back is present; guard avoids duplicate-key warnings
         if (!this.textures.exists('card-back')) {
             this.load.image('card-back', 'assets/images/card-back.png');
         }
@@ -45,6 +45,8 @@ export class DeckScene extends BaseScene {
 
     setInteractive(enabled) {
         this.isInteractive = enabled;
+        // Guard against calls before createScene finished (e.g., right after a reset)
+        if (!this.deckDisplay) return;
         this.deckDisplay.setAlpha(enabled ? 1 : 0.7);
         this.deckDisplay.input && this.deckDisplay.input.enabled !== undefined && (this.deckDisplay.input.enabled = enabled);
     }

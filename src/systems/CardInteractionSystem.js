@@ -101,7 +101,9 @@ export class CardInteractionSystem {
     canEvolveCard(cardName) {
         const key = CardUtils.resolveKey(cardName);
         const card = key ? CardUtils.getCardData(key) : null;
-        return card && CardUtils.canEvolve(card.name);
+        // Use the canonical key for capability checks; passing display names
+        // would fail lookups inside CardData.
+        return card && CardUtils.canEvolve(key);
     }
 
     getEvolvedCardData(cardName) {
@@ -168,17 +170,14 @@ export class CardInteractionSystem {
         // Get evolved card data
         const evolvedCard = this.getEvolvedCardData(this.selectedCard.name);
 
-        // Remove old card and add evolved card
+        // Remove old card from play and move evolved card to discard pile
         this.playerDeck.removeFromPlay(this.selectedCard.name);
-        this.playerDeck.playCard(evolvedCard);
-        
-        // Calculate resource and pressure changes from evolution
-        const resourceChange = evolvedCard.resource - this.selectedCard.resource;
-        const pressureChange = evolvedCard.pressure - this.selectedCard.pressure;
-        
-        // Update totals
-        this.currentResource = Math.max(0, this.currentResource + resourceChange);
-        this.currentPressure = Math.max(0, this.currentPressure + pressureChange);
+        this.playerDeck.discardCard(evolvedCard);
+
+        // Since the evolved card is discarded immediately, its stats do not
+        // affect current turn resource/pressure beyond the evolve cost.
+        const resourceChange = 0;
+        const pressureChange = 0;
         
         // Update turn state
         this.turnState.cardsEvolved++;

@@ -213,14 +213,15 @@ export class MessagesScene extends BaseScene {
                 hudScene.updateResource(result.remainingResource);
             }
 
-            // Update PlayedCards and DiscardPile scenes
+            // Replace the old card in PlayedCards with the evolved version
             const playedCardsScene = this.scene.get('PlayedCardsScene');
             const discardPileScene = this.scene.get('DiscardPileScene');
-            
             if (playedCardsScene) {
-                playedCardsScene.removeCard(cardInteractionSystem.selectedCard);
+                // Remove the pre-evolution card from the played area
+                playedCardsScene.removeCard(result.oldCard);
             }
             if (discardPileScene) {
+                // Move the evolved card to discard pile (with animation)
                 discardPileScene.addCard(result.evolvedCard);
             }
         }
@@ -247,10 +248,19 @@ export class MessagesScene extends BaseScene {
     }
 
     handlePlayAgainClick() {
+        // Trigger a full reset. Scenes will be stopped and restarted, so
+        // avoid touching any existing Text objects here; the restarted
+        // MessagesScene will initialize its own UI and be updated by
+        // GamePhaseManager.updateScenes() once active.
         this.phaseManager.resetGame();
-        
-        // Update UI
-        this.updatePhaseMessage(this.phaseManager.getCurrentPhaseMessage());
-        this.updateButtons(this.phaseManager.getCurrentPhase(), 0);
+    }
+
+    // Called from phase manager at game over
+    showGameOverScreen(isWin, finalState) {
+        // Basic message update and ensure Play Again button is visible
+        const title = isWin ? 'You Win!' : 'Game Over';
+        const points = finalState && typeof finalState.buildingPoints === 'number' ? finalState.buildingPoints : 0;
+        this.updatePhaseMessage(`${title}  Building Points: ${points}. Click Play Again to restart.`);
+        this.updateButtons(GamePhases.GAME_OVER, 0);
     }
 }
