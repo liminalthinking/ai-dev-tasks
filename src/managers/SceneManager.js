@@ -37,17 +37,20 @@ export class SceneManager {
         };
 
         const firstScene = this.scenes[firstKey];
-        // Wait for the first scene's CREATE event, which fires after preload
-        // and loader completion, then start the rest. This avoids missing the
-        // loader 'complete' event when it fires before we attach listeners.
-        if (firstScene && firstScene.events && typeof firstScene.events.once === 'function') {
-            firstScene.events.once(Phaser.Scenes.Events.CREATE, startRest);
-        } else if (firstScene && firstScene.load && typeof firstScene.load.once === 'function') {
-            // Fallback: use loader complete if events are unavailable
-            firstScene.load.once('complete', startRest);
-        } else {
-            setTimeout(startRest, 0);
+        // Robust startup: try both an immediate next-tick start and also
+        // listen for CREATE/loader completion. Whichever fires first wins.
+        let started = false;
+        const maybeStart = () => { if (!started) { started = true; startRest(); } };
+        if (firstScene) {
+            if (firstScene.events && typeof firstScene.events.once === 'function') {
+                firstScene.events.once(Phaser.Scenes.Events.CREATE, maybeStart);
+            }
+            if (firstScene.load && typeof firstScene.load.once === 'function') {
+                firstScene.load.once('complete', maybeStart);
+            }
         }
+        // Next tick fallback in case CREATE already fired (common on restart)
+        setTimeout(maybeStart, 0);
     }
 
     stopScene(key) {

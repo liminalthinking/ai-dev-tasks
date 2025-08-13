@@ -44,10 +44,7 @@ export class AssetLoader {
             createAlias('_hawker-centre', 'hawker-centre');
         });
 
-        // Load card back
-        // Also load card-back here for scenes that rely on it as a fallback
-        if (!scene.textures.exists('card-back')) {
-            scene.load.image('card-back', 'assets/images/card-back.png');
-        }
+        // Do not load 'card-back' here. It is owned by DeckScene to avoid
+        // duplicate-key warnings when multiple scenes preload in parallel.
     }
 }

@@ -9,7 +9,7 @@ export class DeckScene extends BaseScene {
     }
 
     preload() {
-        // Ensure card-back is present; guard avoids duplicate-key warnings
+        // DeckScene is the sole owner of 'card-back' texture
         if (!this.textures.exists('card-back')) {
             this.load.image('card-back', 'assets/images/card-back.png');
         }
@@ -27,6 +27,15 @@ export class DeckScene extends BaseScene {
         )
         .setOrigin(0.5)
         .setScale(cardScale);
+
+        // Ensure texture exists at this moment; if not, set once available
+        if (!this.textures.exists('card-back')) {
+            this.events.once(Phaser.Scenes.Events.CREATE, () => {
+                if (this.deckDisplay && this.textures.exists('card-back')) {
+                    this.deckDisplay.setTexture('card-back');
+                }
+            });
+        }
 
         // Set up click handling
         this.deckDisplay.setInteractive({ useHandCursor: true })

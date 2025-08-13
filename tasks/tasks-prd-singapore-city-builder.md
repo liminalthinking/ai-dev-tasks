@@ -112,6 +112,13 @@
     - Phase-based enabling/disabling
     - Resource-based graying out
 
+- [ ] 5.6 Asset loading and restart lifecycle hardening
+  - [ ] Centralize `card-back` texture loading to a single scene (prefer `BackgroundScene`) and remove all other loaders
+  - [ ] Ensure dependent scenes render placeholders without enqueueing duplicate loads (post-create texture swap)
+  - [ ] Remove all duplicate-key warnings in console on first boot and after restart
+  - [ ] Start scenes only after `BackgroundScene` finishes preload/create; add fallback timer to guarantee startup
+  - [ ] After restart, re-sync HUD/Messages to Turn 1 with zero counts and re-enable `DeckScene` interactivity automatically
+
 - [ ] 6.0 UI/UX Review and Enhancement
   - [ ] 6.1 Review and improve market card affordability indicators:
     - Current implementation uses basic color coding (green/red)

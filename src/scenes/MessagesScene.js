@@ -105,25 +105,15 @@ export class MessagesScene extends BaseScene {
         this.buildButton.visible = false;
         this.buildButton.active = false;
 
-        // Create Play Again button (initially hidden)
+        // Create Play Again button but keep it disabled/hidden for now
         this.playAgainButton = this.add.text(
             this.cameras.main.width - 120 - padding,
-            this.endPhaseButton.y,  // Same Y as End Phase button since they're mutually exclusive
+            this.endPhaseButton.y,
             'Play Again', {
             fontSize: '16px',
-            fill: '#ffffff',
-            backgroundColor: '#444444',
+            fill: '#666666',
+            backgroundColor: '#222222',
             padding: { x: 10, y: 5 }
-        })
-        .setInteractive()
-        .on('pointerover', () => {
-            this.playAgainButton.setBackgroundColor('#666666');
-        })
-        .on('pointerout', () => {
-            this.playAgainButton.setBackgroundColor('#444444');
-        })
-        .on('pointerdown', () => {
-            this.handlePlayAgainClick();
         });
         this.playAgainButton.visible = false;
 
@@ -160,8 +150,11 @@ export class MessagesScene extends BaseScene {
         // Handle End Phase button visibility
         this.endPhaseButton.visible = currentPhase !== GamePhases.GAME_OVER;
 
-        // Handle Play Again button visibility
-        this.playAgainButton.visible = currentPhase === GamePhases.GAME_OVER;
+        // Play Again disabled for now
+        if (this.playAgainButton) {
+            this.playAgainButton.visible = false;
+            this.playAgainButton.disableInteractive && this.playAgainButton.disableInteractive();
+        }
 
         // Handle Evolve button visibility and state
         this.evolveButton.visible = currentPhase === GamePhases.EVOLVE;

@@ -13,12 +13,7 @@ export class MarketScene extends BaseScene {
         this.hoverPreviews = new Map();
     }
 
-    preload() {
-        // Ensure card-back placeholder is available for initial slot render
-        if (!this.textures.exists('card-back')) {
-            this.load.image('card-back', 'assets/images/card-back.png');
-        }
-    }
+    // No preload required; MarketScene relies on specific card textures only.
 
     showHoverPreview(cardImage) {
         // Remove existing preview for this card
@@ -59,18 +54,15 @@ export class MarketScene extends BaseScene {
         // Create 6 market slots in a single row
         const { bounds } = this.config;
         const numCards = 6;
-        const padding = 20; // maintain 20px padding on both sides
-        const cardScale = 0.52; // 30% larger than previous 0.4
+        const padding = 20; // maintain 20px side padding
+        const cardScale = 0.52; // visual scale
+        this._marketLayout = { numCards, padding, cardScale };
 
-        // Estimate card display width from the card-back texture
-        const baseTexture = this.textures.get('card-back');
-        const baseWidth = baseTexture && baseTexture.getSourceImage() ? baseTexture.getSourceImage().width : 150;
-        const cardDisplayWidth = baseWidth * cardScale;
-
-        // Compute evenly spaced centers so card edges keep 20px side padding
-        const startCenterX = padding + (cardDisplayWidth / 2);
-        const step = (bounds.width - (2 * padding) - cardDisplayWidth) / (numCards - 1);
-        const y = (bounds.height / 2);  // center in viewport
+        // Initial rough positions using fallback width; we'll realign when textures are ready
+        const fallbackDisplayWidth = 150 * cardScale;
+        const startCenterX = padding + (fallbackDisplayWidth / 2);
+        const step = (bounds.width - (2 * padding) - fallbackDisplayWidth) / (numCards - 1);
+        const y = (bounds.height / 2);
 
         for (let i = 0; i < 6; i++) {
             const x = startCenterX + (i * step);
@@ -78,8 +70,8 @@ export class MarketScene extends BaseScene {
             const slot = this.add.container(x, y);
             this.marketSlots.push(slot);
 
-            // Add card display with card back initially
-            const card = this.add.image(0, 0, 'card-back')
+            // Add empty slot initially; will be populated by refreshMarket
+            const card = this.add.image(0, 0, '')
                 .setOrigin(0.5)
                 .setScale(cardScale);  // Increased card size by 30%
 
@@ -107,6 +99,8 @@ export class MarketScene extends BaseScene {
 
         // Initial market setup
         this.refreshMarket();
+        // If textures are not yet available, retry until they are
+        this.ensureTexturesThenRefresh();
     }
 
     setInteractive(enabled) {
@@ -120,6 +114,10 @@ export class MarketScene extends BaseScene {
             }
         });
         if (!enabled) this.clearSelection();
+        // Re-evaluate affordability and visuals when toggling interactivity
+        if (enabled) {
+            this.refreshMarket();
+        }
     }
 
     refreshMarket() {
@@ -130,12 +128,20 @@ export class MarketScene extends BaseScene {
             if (cardName && this.marketSlots[index]) {
                 const slot = this.marketSlots[index];
                 const cardDisplay = slot.first;
+                if (!cardDisplay || !cardDisplay.setTexture) {
+                    return; // slot not ready yet
+                }
                 const cardData = { ...CardData[cardName] };  // Get card data from CardData
 
                 // Update card display
                 const textureKey = cardData.imageAsset;
-                const resolvedKey = this.textures.exists(textureKey) ? textureKey : 'card-back';
-                cardDisplay.setTexture(resolvedKey);
+                if (this.textures.exists(textureKey)) {
+                    cardDisplay.setTexture(textureKey);
+                    cardDisplay.setVisible(true);
+                } else {
+                    // If texture not ready, hide until available
+                    cardDisplay.setVisible(false);
+                }
                 cardDisplay.cardData = cardData;  // Store card data for reference
                 cardDisplay.cardKey = cardName;   // Also store the hyphen-case key for logic
 
@@ -175,8 +181,9 @@ export class MarketScene extends BaseScene {
                     // TODO [UI Review - Task 6.1]: Review visual feedback approach
                     // Current implementation uses aggressive greying out
                     // Consider more subtle visual hints or different interaction patterns
+                    const affordable = cardData.cost <= currentResource;
                     if (this.isInteractive) {
-                        if (cardData.cost <= currentResource) {
+                        if (affordable) {
                             cardDisplay.clearTint();
                             cardDisplay.setAlpha(1);
                         } else {
@@ -186,8 +193,55 @@ export class MarketScene extends BaseScene {
                     } else {
                         cardDisplay.setAlpha(0.7);
                     }
+
+                    // Do not disable input; pointerdown handler checks affordability
+                } else {
+                    // No card available in this slot; hide image and texts
+                    cardDisplay.setVisible(false);
+                    const countText = slot.getByName('countText');
+                    if (countText) countText.setVisible(false);
+                    const costText = slot.getByName('costText');
+                    if (costText) costText.setVisible(false);
                 }
             }
+        });
+    }
+
+    ensureTexturesThenRefresh() {
+        const marketState = this.cardInteractionSystem.marketCards.getMarketState();
+        const neededKeys = marketState.slots
+            .map(name => CardData[name])
+            .filter(Boolean)
+            .map(c => c.imageAsset);
+        const allReady = neededKeys.every(k => this.textures.exists(k));
+        if (allReady) {
+            this.refreshMarket();
+            this.relayoutSlotsWithActualWidth();
+        } else {
+            this.time.delayedCall(50, () => this.ensureTexturesThenRefresh());
+        }
+    }
+
+    relayoutSlotsWithActualWidth() {
+        const { bounds } = this.config;
+        const { numCards, padding, cardScale } = this._marketLayout;
+        // pick the first market texture that exists to measure
+        const marketState = this.cardInteractionSystem.marketCards.getMarketState();
+        let baseWidth = 150;
+        for (const name of marketState.slots) {
+            const data = CardData[name];
+            if (!data) continue;
+            const tex = this.textures.get(data.imageAsset);
+            const img = tex && tex.getSourceImage ? tex.getSourceImage() : null;
+            if (img && img.width) { baseWidth = img.width; break; }
+        }
+        const displayWidth = baseWidth * cardScale;
+        const startCenterX = padding + (displayWidth / 2);
+        const step = (bounds.width - (2 * padding) - displayWidth) / (numCards - 1);
+        const y = (bounds.height / 2);
+        this.marketSlots.forEach((slot, i) => {
+            slot.x = startCenterX + (i * step);
+            slot.y = y;
         });
     }
 
@@ -196,6 +250,10 @@ export class MarketScene extends BaseScene {
         const cardDisplay = slot.first;
         
         if (cardDisplay.cardData) {
+            // Only allow selection when card is affordable
+            const key = cardDisplay.cardKey;
+            const canBuild = key && this.cardInteractionSystem.canBuildCard(key);
+            if (!canBuild) return;
             // Select the slot, enable Build button via MessagesScene
             this.selectedSlotIndex = slotIndex;
             this.marketSlots.forEach((s, idx) => {

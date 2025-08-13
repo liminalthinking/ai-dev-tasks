@@ -30,6 +30,9 @@ export class BaseScene extends Phaser.Scene {
             this.addDebugBounds();
         }
 
+        // Always-on panel frame (subtle), independent of debug mode
+        this.addPanelFrame();
+
         // Call scene-specific create method
         if (this.createScene) {
             this.createScene();
@@ -59,6 +62,20 @@ export class BaseScene extends Phaser.Scene {
         // Draw simple border
         graphics.lineStyle(1, debugColors.border, 1);
         graphics.strokeRect(0, 0, bounds.width, bounds.height);
+    }
+
+    // Permanent panel frame for each scene
+    addPanelFrame() {
+        const { bounds } = this.config;
+        const { panelFrame } = SCENE_STYLES;
+        const g = this.add.graphics();
+        // Subtle background
+        g.fillStyle(panelFrame.background, panelFrame.backgroundOpacity);
+        g.fillRect(0, 0, bounds.width, bounds.height);
+        // Border
+        g.lineStyle(panelFrame.thickness, panelFrame.border, 1);
+        g.strokeRect(0, 0, bounds.width, bounds.height);
+        g.setDepth(1);
     }
 
     // Helper method to get relative position within scene bounds

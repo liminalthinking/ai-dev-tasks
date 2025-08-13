@@ -29,10 +29,7 @@ export class PlayedCardsScene extends BaseScene {
         this.isInteractive = enabled;
         if (!this.playedCards) return;
         this.playedCards.forEach(cardSprite => {
-            const canEvolve = cardSprite.cardData && this.cardInteractionSystem.canEvolveCard(cardSprite.cardData.name);
-            if (cardSprite && cardSprite.setAlpha) {
-                cardSprite.setAlpha(enabled && canEvolve ? 1 : 0.7);
-            }
+            this.updateCardInteractivity(cardSprite);
         });
     }
 
@@ -84,11 +81,8 @@ export class PlayedCardsScene extends BaseScene {
             .on('pointerover', () => {
                 // Show magnified hover preview
                 this.showHoverPreview(cardSprite, 'top-right');
-                // Show evolution preview if available and interactive
-                if (this.isInteractive) {
-                    const canEvolve = this.cardInteractionSystem.canEvolveCard(cardData.name);
-                    if (!canEvolve) return;
-                    // Do not grey out here; just show evolution preview
+                // Show evolution preview only if eligible
+                if (this.isInteractive && this.isCardEligible(cardData)) {
                     this.showEvolutionPreview(cardData, cardSprite.x, cardSprite.y);
                 }
             })
@@ -98,6 +92,7 @@ export class PlayedCardsScene extends BaseScene {
             })
             .on('pointerdown', () => {
                 if (!this.isInteractive) return;
+                if (!this.isCardEligible(cardSprite.cardData)) return;
                 // Delegate to existing selection logic
                 this.handleCardClick(cardSprite);
             });
@@ -139,6 +134,8 @@ export class PlayedCardsScene extends BaseScene {
 
         // Update evolution info display
         this.updateEvolutionInfo(cardSprite);
+        // Ensure correct interactivity state now that sprite is created
+        this.updateCardInteractivity(cardSprite);
     }
 
     showHoverPreview(cardSprite) {
@@ -229,12 +226,26 @@ export class PlayedCardsScene extends BaseScene {
             }
         }
 
-        // Update card appearance based on evolvability
-        if (this.isInteractive) {
-            cardSprite.setAlpha(canEvolve ? 1 : 0.7);
-            if (!canEvolve) {
-                cardSprite.clearTint();
-            }
+        // Update card appearance and clickability based on eligibility
+        this.updateCardInteractivity(cardSprite);
+    }
+
+    isCardEligible(cardData) {
+        if (!this.isInteractive || !cardData) return false;
+        const canEvolve = this.cardInteractionSystem.canEvolveCard(cardData.name);
+        const hasResources = this.cardInteractionSystem.getCurrentResource() >= (cardData.evolveCost || 0);
+        return canEvolve && hasResources;
+    }
+
+    updateCardInteractivity(cardSprite) {
+        if (!cardSprite) return;
+        const eligible = this.isCardEligible(cardSprite.cardData);
+        if (cardSprite.setAlpha) {
+            cardSprite.setAlpha(eligible ? 1 : 0.5);
+        }
+        // Keep input enabled to allow hover previews even when not eligible
+        if (!eligible) {
+            cardSprite.clearTint();
         }
     }
 

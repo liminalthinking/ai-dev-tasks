@@ -411,10 +411,38 @@ export class GamePhaseManager {
         this.currentTurn = 1;
         this.buildingPoints = 0;
         this.isProcessingEndTurn = false;
+        // Recreate core systems for a fresh state
+        this.cardInteractionSystem.resetState();
+        // Reset decks and market
+        if (this.cardInteractionSystem.playerDeck) {
+            this.cardInteractionSystem.playerDeck = new (require('../data/PlayerDeck').PlayerDeck)();
+        }
+        if (this.cardInteractionSystem.marketCards) {
+            this.cardInteractionSystem.marketCards = new (require('../data/MarketCards').MarketCards)();
+        }
+
         // Reset card systems and scenes through scene manager
         this.sceneManager.resetAllScenes();
-        // Do not call updateScenes immediately; scenes are restarting and
-        // UI elements may not exist yet. The restarted scenes will render
-        // initial state on their own create hooks.
+        // After BackgroundScene restarts and finishes create, refresh HUD/messages
+        const scheduleRefresh = () => {
+            const messagesScene = this.sceneManager.getScene('MessagesScene');
+            if (messagesScene && typeof messagesScene.updatePhaseMessage === 'function') {
+                messagesScene.updatePhaseMessage(this.getCurrentPhaseMessage());
+                messagesScene.updateButtons(this.currentPhase, 0);
+            }
+            this.updateSceneInteractivity();
+        };
+        const bg = this.sceneManager.getScene('BackgroundScene');
+        let scheduled = false;
+        const maybeSchedule = () => { if (!scheduled) { scheduled = true; scheduleRefresh(); } };
+        if (bg) {
+            if (bg.events && typeof bg.events.once === 'function') {
+                bg.events.once(Phaser.Scenes.Events.CREATE, maybeSchedule);
+            }
+            if (bg.load && typeof bg.load.once === 'function') {
+                bg.load.once('complete', maybeSchedule);
+            }
+        }
+        setTimeout(maybeSchedule, 0);
     }
 }

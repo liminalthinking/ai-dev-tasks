@@ -4,7 +4,7 @@ export class BackgroundScene extends Phaser.Scene {
     }
 
     preload() {
-        // Load background image and all card textures centrally
+        // Load background image and all card textures centrally (excluding card-back)
         this.load.image('background', 'assets/images/background.png');
         const { AssetLoader } = require('../utils/AssetLoader');
         // Queue textures; AssetLoader internally skips already-loaded keys.
@@ -12,6 +12,9 @@ export class BackgroundScene extends Phaser.Scene {
     }
 
     create() {
+        // Emit a create event that SceneManager/GamePhaseManager can listen to
+        // to know when assets are ready and scenes can safely start/update.
+        // Phaser will emit CREATE internally; we rely on that listener. No-op here.
         // Add background image
         const bg = this.add.image(0, 0, 'background')
             .setOrigin(0, 0);

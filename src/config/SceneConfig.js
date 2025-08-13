@@ -14,7 +14,14 @@ export const SCENE_STYLES = {
         fontSize: '16px',
         fill: '#ffffff'
     },
-    debugBounds: true,  // Set to true to show scene boundaries during development
+    debugBounds: false,  // Hide scene boundaries in production
+    // Always-on scene panel outline (not a debug feature)
+    panelFrame: {
+        border: 0x444444,
+        thickness: 2,
+        background: 0x000000,
+        backgroundOpacity: 0.06
+    },
     debugColors: {
         background: 0x222222,
         border: 0x444444,
@@ -44,7 +51,7 @@ export const SCENE_CONFIG = {
             width: GAME_WIDTH - 20,
             height: 80
         },
-        label: 'HUD'
+        label: null
     },
     MarketScene: {
         key: 'MarketScene',
