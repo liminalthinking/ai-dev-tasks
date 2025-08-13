@@ -11,7 +11,8 @@ export const PhaseMessages = {
     [GamePhases.BUILD]: "Buy cards from the MARKET with available resources. \n\nClick the End Phase button to move to the next phase.",
     [GamePhases.EVOLVE]: "Evolve cards from the Played Cards area, \n\nClick the End Phase button to end this turn.",
     [GamePhases.END_TURN]: "Processing end of turn...",
-    [GamePhases.GAME_OVER]: "Congratulations! \n\nYour nation survived 12 turns and achieved {points} Building Points!"
+    [GamePhases.PRESSURE]: "The mounting pressure is too much for a growing nation. Unfortunately your nation has been thrown into turmoil.\n\nRefresh your browser to play again",
+    [GamePhases.GAME_OVER]: "Congratulations! \n\nYour nation survived 12 turns and achieved {points} Building Points!\n\nRefresh your browser to play again"
 };
 
 export class GamePhaseManager {
@@ -77,12 +78,11 @@ export class GamePhaseManager {
                 this.updateTurnState('pressureGained', result.pressureChange);
             }
 
-            // Update all scenes with new state
-            this.updateScenes();
-
-            // Check for game over conditions
+            // Check for game over conditions BEFORE updating scenes so UI reflects bust immediately
             const gameOverCheck = this.checkGameOver();
             if (gameOverCheck.isGameOver) {
+                // Update scenes to show GAME_OVER state and hide End Phase button
+                this.updateScenes();
                 return {
                     success: true,
                     gameOver: true,
@@ -92,6 +92,9 @@ export class GamePhaseManager {
                     isWin: gameOverCheck.isWin
                 };
             }
+
+            // Not game over: update scenes with new state
+            this.updateScenes();
 
             return {
                 success: true,

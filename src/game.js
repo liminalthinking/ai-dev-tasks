@@ -14,6 +14,8 @@ import { PlayedCardsScene } from './scenes/PlayedCardsScene';
 import { MarketScene } from './scenes/MarketScene';
 import { DiscardPileScene } from './scenes/DiscardPileScene';
 import { OverlayScene } from './scenes/OverlayScene';
+import { IntroScene } from './scenes/IntroScene';
+import { GameRulesScene } from './scenes/GameRulesScene';
 
 import { GAME_WIDTH, GAME_HEIGHT } from './config/SceneConfig';
 
@@ -37,20 +39,53 @@ class Game extends Phaser.Game {
     constructor() {
         super(config);
 
-        // Initialize managers and systems
+        // Core manager for registering/starting scenes
         this.sceneManager = new SceneManager(this);
-        
-        // Initialize game components
-        this.playerDeck = new PlayerDeck();
-        this.marketCards = new MarketCards();
-        this.cardInteractionSystem = new CardInteractionSystem(this.playerDeck, this.marketCards);
-        
-        // Initialize phase manager
-        this.phaseManager = new GamePhaseManager(this.cardInteractionSystem, this.sceneManager);
 
-        // Start scenes in an order that guarantees textures are loaded before
-        // dependent scenes create images. Wait for BackgroundScene loader to
-        // complete, then start the rest.
+        // Lazily initialize core game systems when Start Game is clicked
+        this.playerDeck = null;
+        this.marketCards = null;
+        this.cardInteractionSystem = null;
+        this.phaseManager = null;
+
+        // Track whether core scenes have started to avoid double-start
+        this.coreScenesStarted = false;
+
+        // Add and start intro/rules scenes
+        this.scene.add('IntroScene', new IntroScene(this));
+        this.scene.add('GameRulesScene', new GameRulesScene(this));
+        this.scene.start('IntroScene');
+
+        // Scenes will handle enabling interactivity on their own create hooks
+    }
+
+    // Called by IntroScene when the user clicks Start Game
+    startCoreScenes() {
+        // Always hide/remove intro/rules first to prevent any restarts/flicker
+        try { this.scene.stop('IntroScene'); } catch (_) {}
+        try { this.scene.stop('GameRulesScene'); } catch (_) {}
+        try { this.scene.remove('IntroScene'); } catch (_) {}
+        try { this.scene.remove('GameRulesScene'); } catch (_) {}
+
+        if (this.coreScenesStarted) {
+            return; // Core already running
+        }
+        this.coreScenesStarted = true;
+
+        if (!this.playerDeck) {
+            this.playerDeck = new PlayerDeck();
+        }
+        if (!this.marketCards) {
+            this.marketCards = new MarketCards();
+        }
+        if (!this.cardInteractionSystem) {
+            this.cardInteractionSystem = new CardInteractionSystem(this.playerDeck, this.marketCards);
+        }
+        if (!this.phaseManager) {
+            this.phaseManager = new GamePhaseManager(this.cardInteractionSystem, this.sceneManager);
+        }
+
+        // Start the full game stack (Background first, then others)
         this.sceneManager.startScenesOrdered([
             ['BackgroundScene', new BackgroundScene()],
             ['HUDScene', new HUDScene(this.phaseManager)],
@@ -62,7 +97,9 @@ class Game extends Phaser.Game {
             ['OverlayScene', new OverlayScene()]
         ]);
 
-        // Scenes will handle enabling interactivity on their own create hooks
+        // Ensure intro/rules remain removed
+        try { this.scene.remove('IntroScene'); } catch (_) {}
+        try { this.scene.remove('GameRulesScene'); } catch (_) {}
     }
 }
 
