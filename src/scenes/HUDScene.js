@@ -36,29 +36,29 @@ export class HUDScene extends BaseScene {
         this._hudLayout = { padding, topMargin, iconSize, gap, groupGap };
 
         // Two-row HUD groups
-        this.turnLabel = this.add.text(0, topMargin, 'Turn', { fontSize: '16px', fill: '#ffffff' });
-        this.turnValue = this.add.text(0, topMargin + 24, '1/12', { fontSize: '20px', fill: '#ffffff' });
+        this.turnLabel = this.add.text(0, topMargin, 'Turn', { fontSize: '16px', fill: '#ffffff', fontFamily: 'Alegreya, serif' });
+        this.turnValue = this.add.text(0, topMargin + 24, '1/12', { fontSize: '20px', fill: '#ffffff', fontFamily: 'Alegreya, serif' });
 
         // Resource group
         this.resourceIcon = this.add.image(padding, topMargin, 'icon-resource')
             .setOrigin(0, 0)
             .setDisplaySize(iconSize, iconSize);
-        this.resourceLabel = this.add.text(0, topMargin, 'Resource', { fontSize: '16px', fill: '#ffffff' });
-        this.resourceValue = this.add.text(0, topMargin + 24, '0', { fontSize: '20px', fill: '#ffffff' });
+        this.resourceLabel = this.add.text(0, topMargin, 'Resource', { fontSize: '16px', fill: '#ffffff', fontFamily: 'Alegreya, serif' });
+        this.resourceValue = this.add.text(0, topMargin + 24, '0', { fontSize: '20px', fill: '#ffffff', fontFamily: 'Alegreya, serif' });
 
         // Pressure group
         this.pressureIcon = this.add.image(0, topMargin, 'icon-pressure')
             .setOrigin(0, 0)
             .setDisplaySize(iconSize, iconSize);
-        this.pressureLabel = this.add.text(0, topMargin, 'Pressure', { fontSize: '16px', fill: '#ffffff' });
-        this.pressureValue = this.add.text(0, topMargin + 24, '0/5', { fontSize: '20px', fill: '#ffffff' });
+        this.pressureLabel = this.add.text(0, topMargin, 'Pressure', { fontSize: '16px', fill: '#ffffff', fontFamily: 'Alegreya, serif' });
+        this.pressureValue = this.add.text(0, topMargin + 24, '0/5', { fontSize: '20px', fill: '#ffffff', fontFamily: 'Alegreya, serif' });
 
         // Points group
         this.pointsIcon = this.add.image(0, topMargin, 'icon-points')
             .setOrigin(0, 0)
             .setDisplaySize(iconSize, iconSize);
-        this.pointsLabel = this.add.text(0, topMargin, 'Building Points', { fontSize: '16px', fill: '#ffffff' });
-        this.pointsValue = this.add.text(0, topMargin + 24, '0', { fontSize: '20px', fill: '#ffffff' });
+        this.pointsLabel = this.add.text(0, topMargin, 'Building Points', { fontSize: '16px', fill: '#ffffff', fontFamily: 'Alegreya, serif' });
+        this.pointsValue = this.add.text(0, topMargin + 24, '0', { fontSize: '20px', fill: '#ffffff', fontFamily: 'Alegreya, serif' });
 
         // Container for evolution animations
         this.evolutionContainer = this.add.container(0, 0);
@@ -177,7 +177,8 @@ export class HUDScene extends BaseScene {
 
         const changeText = this.add.text(x, y, text, {
             fontSize: '20px',
-            fill: color
+            fill: color,
+            fontFamily: 'Alegreya, serif'
         });
         
         this.tweens.add({
@@ -202,7 +203,8 @@ export class HUDScene extends BaseScene {
 
         const changeText = this.add.text(x, y, text, {
             fontSize: '20px',
-            fill: color
+            fill: color,
+            fontFamily: 'Alegreya, serif'
         });
         
         this.tweens.add({
@@ -272,7 +274,8 @@ export class HUDScene extends BaseScene {
             const pointsChange = this.add.text(x, y + 50, 
                 `+${changes.points} Points ⭐`, {
                     fontSize: '16px',
-                    fill: '#ffff00'
+                    fill: '#ffff00',
+                    fontFamily: 'Alegreya, serif'
                 }
             );
             this.tweens.add({
@@ -327,7 +330,7 @@ export class HUDScene extends BaseScene {
                 this.pointsValue.x + this.pointsValue.width + 10,
                 this.pointsValue.y,
                 `+${pointsChange} ⭐`,
-                { fontSize: '20px', fill: '#ffff00' }
+                { fontSize: '20px', fill: '#ffff00', fontFamily: 'Alegreya, serif' }
             );
             this.tweens.add({ targets: changeText, y: changeText.y - 30, alpha: 0, duration: 1000, onComplete: () => changeText.destroy() });
         }

@@ -7,12 +7,14 @@ export const SCENE_STYLES = {
     labelText: {
         fontSize: '14px',
         fill: '#ffffff',
+        fontFamily: 'Alegreya, serif',
         backgroundColor: '#333333',
         padding: { x: 8, y: 4 }
     },
     gameText: {
         fontSize: '16px',
-        fill: '#ffffff'
+        fill: '#ffffff',
+        fontFamily: 'Alegreya, serif'
     },
     debugBounds: false,  // Hide scene boundaries in production
     // Always-on scene panel outline (not a debug feature)

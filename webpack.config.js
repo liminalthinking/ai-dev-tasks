@@ -14,14 +14,17 @@ module.exports = {
         static: [
             {
                 directory: path.join(__dirname, 'dist'),
-                publicPath: '/'
+                publicPath: '/',
+                watch: false
             },
             {
                 directory: path.join(__dirname, ''),
-                publicPath: '/'
+                publicPath: '/',
+                watch: { ignored: ['**/.git/**', '**/*.pb', '**/.cursor/**'] }
             }
         ],
-        hot: true
+        hot: 'only',
+        liveReload: false
     },
     module: {
         rules: [

@@ -21,6 +21,7 @@ export class MessagesScene extends BaseScene {
             {
                 fontSize: '16px',
                 fill: '#ffffff',
+                fontFamily: 'Alegreya, serif',
                 wordWrap: { width: this.cameras.main.width - (padding * 2) },
                 align: 'left'
             }
@@ -30,6 +31,7 @@ export class MessagesScene extends BaseScene {
         this.endPhaseButton = this.add.text(0, 0, 'End Phase', {
             fontSize: '16px',
             fill: '#ffffff',
+            fontFamily: 'Alegreya, serif',
             backgroundColor: '#444444',
             padding: { x: 10, y: 5 }
         })
@@ -52,6 +54,7 @@ export class MessagesScene extends BaseScene {
             'Evolve!', {
             fontSize: '16px',
             fill: '#ffffff',
+            fontFamily: 'Alegreya, serif',
             backgroundColor: '#444444',
             padding: { x: 10, y: 5 }
         })
@@ -82,6 +85,7 @@ export class MessagesScene extends BaseScene {
             'Build', {
             fontSize: '16px',
             fill: '#ffffff',
+            fontFamily: 'Alegreya, serif',
             backgroundColor: '#444444',
             padding: { x: 10, y: 5 }
         })
@@ -112,6 +116,7 @@ export class MessagesScene extends BaseScene {
             'Play Again', {
             fontSize: '16px',
             fill: '#666666',
+            fontFamily: 'Alegreya, serif',
             backgroundColor: '#222222',
             padding: { x: 10, y: 5 }
         });

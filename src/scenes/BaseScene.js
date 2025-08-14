@@ -45,7 +45,7 @@ export class BaseScene extends Phaser.Scene {
             4,
             4,
             text,
-            SCENE_STYLES.labelText
+            { ...SCENE_STYLES.labelText, fontFamily: 'Alegreya, serif' }
         );
         label.setDepth(100);
     }

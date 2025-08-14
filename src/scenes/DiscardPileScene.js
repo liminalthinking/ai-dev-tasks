@@ -21,7 +21,8 @@ export class DiscardPileScene extends BaseScene {
         // Remove center text indicator for a cleaner look (keep scene label only)
         this.emptyPileText = this.add.text(x, y - 30, '', {
             fontSize: '16px',
-            fill: '#666666'
+            fill: '#666666',
+            fontFamily: 'Alegreya, serif'
         }).setOrigin(0.5);
 
         // Container for the top card display
@@ -33,7 +34,8 @@ export class DiscardPileScene extends BaseScene {
         // Add hover text for card count
         this.countText = this.add.text(x, y + 30, '0 cards', {
             fontSize: '14px',
-            fill: '#ffffff'
+            fill: '#ffffff',
+            fontFamily: 'Alegreya, serif'
         }).setOrigin(0.5);
     }
 
@@ -165,7 +167,8 @@ export class DiscardPileScene extends BaseScene {
         const warningText = this.add.text(50, 150, '⚠️ Pressure Added!', {
             fontSize: '16px',
             fill: '#ff0000',
-            fontStyle: 'bold'
+            fontStyle: 'bold',
+            fontFamily: 'Alegreya, serif'
         });
 
         // Animate warning text
@@ -218,7 +221,8 @@ export class DiscardPileScene extends BaseScene {
             fontSize: '12px',
             fill: '#ffffff',
             backgroundColor: '#000000',
-            padding: { x: 5, y: 5 }
+            padding: { x: 5, y: 5 },
+            fontFamily: 'Alegreya, serif'
         });
 
         this.cardDetails = detailsText;
@@ -264,7 +268,8 @@ export class DiscardPileScene extends BaseScene {
             fontSize: '12px',
             fill: '#ffffff',
             backgroundColor: '#333333',
-            padding: { x: 10, y: 10 }
+            padding: { x: 10, y: 10 },
+            fontFamily: 'Alegreya, serif'
         });
 
         // Animate summary appearance

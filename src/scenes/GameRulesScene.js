@@ -2,6 +2,7 @@ export class GameRulesScene extends Phaser.Scene {
 	constructor(gameInstance) {
 		super({ key: 'GameRulesScene' });
 		this.gameInstance = gameInstance;
+		this.currentPage = 1;
 	}
 
 	preload() {
@@ -35,40 +36,125 @@ export class GameRulesScene extends Phaser.Scene {
 		this.add.rectangle(0, 0, width, height, 0x000000, 0.4).setOrigin(0, 0);
 
 		// Title
-		this.add.text(width / 2, 60, 'Game Rules', {
-			fontSize: '40px',
-			color: '#ffffff'
-		}).setOrigin(0.5);
+        this.titleText = this.add.text(width / 2, 60, 'Game Rules', {
+            fontSize: '40px',
+            color: '#ffffff',
+            fontFamily: 'Alegreya, serif'
+        }).setOrigin(0.5);
 
-		// Basic rules text (can be expanded later)
-		const bodyText = [
-			'Play Cards: Draw cards to gain Resources and Pressure.',
-			'Build: Spend Resources to buy new cards from the Market.',
-			'Evolve: Upgrade eligible cards you played this turn.',
-			'End Turn: Pressure ≥ 5 results in an immediate Game Over.',
-			'Complete 12 turns to win.'
+		// Page content containers
+		this.page1Content = this.add.container(0, 0);
+		this.page2Content = this.add.container(0, 0);
+		this.page2Content.setVisible(false);
+
+		// Page 1 content (ends after step 1)
+		const page1Text = [
+			'Welcome to the Lion City...before it was the Lion City. Architect the transformation of swamps and kampungs into a gleaming metropolis. From humble hawker stalls to gleaming skyscrapers, your choices shape the skyline. But beware—the pressure of progress is real, and only the wisest builders endure.',
+			'Objective: Survive 12 turns of city building and maximize Building POINTS while not busting from PRESSURE. The game ends immediately when PRESSURE reaches 5 or more.',
+			'The game is played out over 12 turns in the following sequence',
+			'🎴 1. Play Cards: Draw cards from your deck to Gain Resources',
+			'Step into the planning office. Each card drawn represents a new opportunity that may also come with the mounting PRESSURE of city building.'
 		].join('\n\n');
 
-		this.add.text(width * 0.1, 120, bodyText, {
+		this.page1Text = this.add.text(width * 0.2, 140, page1Text, {
 			fontSize: '20px',
 			color: '#dddddd',
-			wordWrap: { width: width * 0.8 }
+			wordWrap: { width: width * 0.6 },
+			fontFamily: 'Alegreya, serif'
 		});
+		this.page1Content.add(this.page1Text);
 
-		// Back button
-		const backBtn = this.add.text(width / 2, height - 80, 'Back', {
-			fontSize: '26px',
+		// Page 2 content (remaining steps)
+		const page2Text = [
+			'🏗️ 2. Build: Spend RESOURCE gained from the cards you played to build new cards from the Market Area to add to your city (deck). New buildings go into your discard pile to be reshuffled into your deck at the end of turn.',
+			'Remember: Every build is a step toward a thriving metropolis—but do not forget your roots.',
+			'🔧 3. Evolve: Evolve eligible building cards using the RESOURCE you gained from playing cards this turn',
+			'Evolve kampongs into HDB Blocks. Upgrade street food stalls into iconic hawker centres. Evolve your city with pride, manage growth with care, new establishments can come with new tension (PRESSURE)...',
+			'⏳ 4. End Turn: A PRESSURE card is added to your deck. All cards in your deck, play area and discard pile are shuffled back into your deck',
+			'',
+			'🏁 If you survive 12 turns, your city becomes a beacon of harmony and progress. Celebrate with fireworks over the Esplanade and cheers from the void decks!'
+		].join('\n\n');
+
+		this.page2Text = this.add.text(width * 0.2, 140, page2Text, {
+			fontSize: '20px',
+			color: '#dddddd',
+			wordWrap: { width: width * 0.6 },
+			fontFamily: 'Alegreya, serif'
+		});
+		this.page2Content.add(this.page2Text);
+
+		// Navigation buttons
+		this.createNavigationButtons(width, height);
+	}
+
+	createNavigationButtons(width, height) {
+		// Next button (page 1 only)
+		this.nextButton = this.add.text(width / 2 + 100, height - 80, 'Next →', {
+			fontSize: '20px',
 			color: '#ffffff',
 			backgroundColor: '#444444',
-			padding: { x: 18, y: 10 }
+			padding: { x: 18, y: 10 },
+			fontFamily: 'Alegreya, serif'
 		})
 			.setOrigin(0.5)
 			.setInteractive({ useHandCursor: true })
-			.on('pointerover', () => backBtn.setBackgroundColor('#666666'))
-			.on('pointerout', () => backBtn.setBackgroundColor('#444444'))
+			.on('pointerover', () => this.nextButton.setBackgroundColor('#666666'))
+			.on('pointerout', () => this.nextButton.setBackgroundColor('#444444'))
+			.on('pointerdown', () => {
+				this.showPage(2);
+			});
+
+		// Previous button (page 2 only) - positioned at same location as Next button
+		this.prevButton = this.add.text(width / 2 + 100, height - 80, '← Previous', {
+			fontSize: '20px',
+			color: '#ffffff',
+			backgroundColor: '#444444',
+			padding: { x: 18, y: 10 },
+			fontFamily: 'Alegreya, serif'
+		})
+			.setOrigin(0.5)
+			.setInteractive({ useHandCursor: true })
+			.on('pointerover', () => this.prevButton.setBackgroundColor('#666666'))
+			.on('pointerout', () => this.prevButton.setBackgroundColor('#444444'))
+			.on('pointerdown', () => {
+				this.showPage(1);
+			})
+			.setVisible(false);
+
+		// Back button (page 2 only) - positioned on the left
+		this.backButton = this.add.text(width / 2 - 130, height - 80, 'Back to Menu', {
+			fontSize: '20px',
+			color: '#ffffff',
+			backgroundColor: '#444444',
+			padding: { x: 18, y: 10 },
+			fontFamily: 'Alegreya, serif'
+		})
+			.setOrigin(0.5)
+			.setInteractive({ useHandCursor: true })
+			.on('pointerover', () => this.backButton.setBackgroundColor('#666666'))
+			.on('pointerout', () => this.backButton.setBackgroundColor('#444444'))
 			.on('pointerdown', () => {
 				this.scene.start('IntroScene');
-			});
+			})
+			.setVisible(false);
+	}
+
+	showPage(pageNumber) {
+		this.currentPage = pageNumber;
+		
+		if (pageNumber === 1) {
+			this.page1Content.setVisible(true);
+			this.page2Content.setVisible(false);
+			this.nextButton.setVisible(true);
+			this.prevButton.setVisible(false);
+			this.backButton.setVisible(false);
+		} else {
+			this.page1Content.setVisible(false);
+			this.page2Content.setVisible(true);
+			this.nextButton.setVisible(false);
+			this.prevButton.setVisible(true);
+			this.backButton.setVisible(true);
+		}
 	}
 }
 

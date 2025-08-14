@@ -57,20 +57,23 @@ export class PlayedCardsScene extends BaseScene {
                 // Show evolution cost
                 const costText = this.add.text(-20, 40, `${cardData.evolveCost}💰`, {
                     fontSize: '14px',
-                    fill: '#ffffff'
+                    fill: '#ffffff',
+                    fontFamily: 'Alegreya, serif'
                 }).setName('costText');
                 infoContainer.add(costText);
 
                 // Show evolution arrow and target
                 const arrowText = this.add.text(0, 40, '→', {
                     fontSize: '14px',
-                    fill: '#ffffff'
+                    fill: '#ffffff',
+                    fontFamily: 'Alegreya, serif'
                 });
                 infoContainer.add(arrowText);
 
                 const targetText = this.add.text(20, 40, evolvedCard.name, {
                     fontSize: '12px',
-                    fill: '#ffffff'
+                    fill: '#ffffff',
+                    fontFamily: 'Alegreya, serif'
                 });
                 infoContainer.add(targetText);
             }
@@ -120,7 +123,8 @@ export class PlayedCardsScene extends BaseScene {
             const diag = this.add.text(0, -110, `${cardData.name} | img:${resolvedKey}`, {
                 fontSize: '10px',
                 fill: '#ff66ff',
-                backgroundColor: '#1a1a1a'
+                backgroundColor: '#1a1a1a',
+                fontFamily: 'Alegreya, serif'
             }).setOrigin(0.5);
             diag.x = cardSprite.x;
             this.cardContainer.add(diag);
@@ -194,7 +198,8 @@ export class PlayedCardsScene extends BaseScene {
                 `Pressure: ${cardData.pressure} → ${evolvedCard.pressure}\n` +
                 `Points: ${cardData.points} → ${evolvedCard.points}`, {
                     fontSize: '12px',
-                    fill: '#ffffff'
+                    fill: '#ffffff',
+                    fontFamily: 'Alegreya, serif'
                 });
 
             this.previewContainer.add([preview, statsText]);

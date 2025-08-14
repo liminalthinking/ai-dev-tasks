@@ -153,7 +153,8 @@ export class MarketScene extends BaseScene {
                     if (!countText) {
                         countText = this.add.text(30, 30, `x${count}`, {
                             fontSize: '14px',
-                            fill: '#ffffff'
+                            fill: '#ffffff',
+                            fontFamily: 'Alegreya, serif'
                         }).setName('countText');
                         slot.add(countText);
                     } else {
@@ -170,7 +171,8 @@ export class MarketScene extends BaseScene {
                     if (!costText) {
                         costText = this.add.text(-30, 30, `${cardData.cost}💰`, {
                             fontSize: '14px',
-                            fill: '#ffffff'
+                            fill: '#ffffff',
+                            fontFamily: 'Alegreya, serif'
                         }).setName('costText');
                         slot.add(costText);
                     } else {

@@ -48,10 +48,11 @@ export class IntroScene extends Phaser.Scene {
 		*/
 
 		// Buttons
-		const createButton = (label, y, onClick) => {
+        const createButton = (label, y, onClick) => {
 			const btn = this.add.text(width / 2, y, label, {
-				fontSize: '28px',
-				color: '#ffffff',
+				fontSize: '20px',
+                color: '#ffffff',
+                fontFamily: 'Alegreya, serif',
 				backgroundColor: '#444444',
 				padding: { x: 18, y: 10 }
 			})
@@ -61,7 +62,7 @@ export class IntroScene extends Phaser.Scene {
 				.on('pointerout', () => btn.setBackgroundColor('#444444'))
 				.on('pointerdown', () => onClick());
 			return btn;
-		};
+        };
 
 		createButton('Start Game', height * 0.62, () => {
 			// Immediately stop this scene to avoid re-triggers/flicker
