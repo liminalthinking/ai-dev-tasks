@@ -16,8 +16,7 @@ export class PlayedCardsScene extends BaseScene {
             0,
             bounds.height / 2
         );
-        // Diagnostics: toggle to show name/texture above each card
-        this.enableDiagnostics = true;
+
         this.cardLeftPadding = 20;
         this.cardOverlapRatio = 0.3; // 30% step from left border
         this.cardDisplayWidth = null;
@@ -28,7 +27,11 @@ export class PlayedCardsScene extends BaseScene {
     setInteractive(enabled) {
         this.isInteractive = enabled;
         if (!this.playedCards) return;
-        this.playedCards.forEach(cardSprite => {
+        
+        // Ensure proper opacity for all cards
+        this.playedCards.forEach((cardSprite, index) => {
+            const isTopCard = index === this.playedCards.length - 1;
+            cardSprite.setAlpha(isTopCard ? 1 : 0.5);
             this.updateCardInteractivity(cardSprite);
         });
     }
@@ -47,37 +50,7 @@ export class PlayedCardsScene extends BaseScene {
         // Store card data with sprite
         cardSprite.cardData = cardData;
 
-        // Create evolution info container
-        const infoContainer = this.add.container(0, 0);
-        
-        // Add evolution cost if card can evolve
-        if (cardData.evolvesTo) {
-            const evolvedCard = this.cardInteractionSystem.getEvolvedCardData(cardData.name);
-            if (evolvedCard) {
-                // Show evolution cost
-                const costText = this.add.text(-20, 40, `${cardData.evolveCost}💰`, {
-                    fontSize: '14px',
-                    fill: '#ffffff',
-                    fontFamily: 'Alegreya, serif'
-                }).setName('costText');
-                infoContainer.add(costText);
 
-                // Show evolution arrow and target
-                const arrowText = this.add.text(0, 40, '→', {
-                    fontSize: '14px',
-                    fill: '#ffffff',
-                    fontFamily: 'Alegreya, serif'
-                });
-                infoContainer.add(arrowText);
-
-                const targetText = this.add.text(20, 40, evolvedCard.name, {
-                    fontSize: '12px',
-                    fill: '#ffffff',
-                    fontFamily: 'Alegreya, serif'
-                });
-                infoContainer.add(targetText);
-            }
-        }
 
         // Make card interactive for evolution
         cardSprite.setInteractive({ useHandCursor: true })
@@ -110,27 +83,14 @@ export class PlayedCardsScene extends BaseScene {
         // Position this card with overlap from the left padding
         const halfWidth = this.cardDisplayWidth / 2;
         cardSprite.x = this.cardLeftPadding + halfWidth + (index * this.cardStep);
-        infoContainer.x = cardSprite.x;
 
         // Ensure newer cards render on top
         this.cardContainer.add(cardSprite);
-        this.cardContainer.add(infoContainer);
         cardSprite.setDepth(10 + index);
-        infoContainer.setDepth(10 + index);
 
-        // Diagnostics overlay showing underlying name and image key
-        if (this.enableDiagnostics) {
-            const diag = this.add.text(0, -110, `${cardData.name} | img:${resolvedKey}`, {
-                fontSize: '10px',
-                fill: '#ff66ff',
-                backgroundColor: '#1a1a1a',
-                fontFamily: 'Alegreya, serif'
-            }).setOrigin(0.5);
-            diag.x = cardSprite.x;
-            this.cardContainer.add(diag);
-            cardSprite.diagText = diag;
-            diag.setDepth(11 + index);
-        }
+        // Set initial opacity - this card should be fully opaque as it's the newest
+        cardSprite.setAlpha(1);
+
         this.playedCards.push(cardSprite);
 
         // Adjust container position if needed
@@ -216,21 +176,6 @@ export class PlayedCardsScene extends BaseScene {
         const cardData = cardSprite.cardData;
         if (!cardData) return;
 
-        const canEvolve = this.cardInteractionSystem.canEvolveCard(cardData.name);
-        const hasResources = this.cardInteractionSystem.getCurrentResource() >= cardData.evolveCost;
-
-        // Update cost text color based on resources
-        // Note: cost text is added to the separate infoContainer, not on the image sprite itself
-        // so getByName on the image will be undefined. Safely find the sibling container instead.
-        const spriteIndex = this.cardContainer.list.indexOf(cardSprite);
-        const sibling = spriteIndex >= 0 ? this.cardContainer.list[spriteIndex + 1] : null;
-        if (sibling && sibling.getByName) {
-            const costText = sibling.getByName('costText');
-            if (costText) {
-                costText.setFill(hasResources ? '#00ff00' : '#ff0000');
-            }
-        }
-
         // Update card appearance and clickability based on eligibility
         this.updateCardInteractivity(cardSprite);
     }
@@ -245,10 +190,9 @@ export class PlayedCardsScene extends BaseScene {
     updateCardInteractivity(cardSprite) {
         if (!cardSprite) return;
         const eligible = this.isCardEligible(cardSprite.cardData);
-        if (cardSprite.setAlpha) {
-            cardSprite.setAlpha(eligible ? 1 : 0.5);
-        }
-        // Keep input enabled to allow hover previews even when not eligible
+        
+        // Don't override opacity here - it's managed by adjustLayout
+        // Only clear tint if not eligible
         if (!eligible) {
             cardSprite.clearTint();
         }
@@ -260,6 +204,10 @@ export class PlayedCardsScene extends BaseScene {
             const cardSprite = this.playedCards[index];
             cardSprite.destroy();
             this.playedCards.splice(index, 1);
+            
+            // Clear all tints before adjusting layout
+            this.playedCards.forEach(sprite => sprite.clearTint());
+            
             this.adjustLayout();
         }
     }
@@ -274,14 +222,13 @@ export class PlayedCardsScene extends BaseScene {
             }
             const halfWidth = this.cardDisplayWidth / 2;
             cardSprite.x = this.cardLeftPadding + halfWidth + (index * this.cardStep);
-            // Also move the associated info container
-            const infoContainer = this.cardContainer.list[this.cardContainer.list.indexOf(cardSprite) + 1];
-            if (infoContainer) {
-                infoContainer.x = cardSprite.x;
-            }
-            if (cardSprite.diagText) {
-                cardSprite.diagText.x = cardSprite.x;
-            }
+            
+            // Update depth to ensure proper layering (newer cards on top)
+            cardSprite.setDepth(10 + index);
+            
+            // Update opacity - only the top card (most recent) should be fully opaque
+            const isTopCard = index === this.playedCards.length - 1;
+            cardSprite.setAlpha(isTopCard ? 1 : 0.5);
         });
     }
 

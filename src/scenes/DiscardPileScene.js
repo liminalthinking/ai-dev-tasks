@@ -86,19 +86,21 @@ export class DiscardPileScene extends BaseScene {
     }
 
     animateCardAddition(cardData) {
-        // Create card sprite for animation
-        const cardSprite = this.add.image(50, 100, cardData.imageAsset)
+        // Create card sprite for animation at container-relative position
+        const startX = -25;  // Start 100px to the right of container center
+        const startY = 0;   // Start 50px below container center
+        const cardSprite = this.add.image(startX, startY, cardData.imageAsset)
             .setOrigin(0.5)
             .setScale(0.52);
 
         // Add to animation container
         this.animationContainer.add(cardSprite);
 
-        // Animate card flying to discard pile
+        // Animate card to container center
         this.tweens.add({
             targets: cardSprite,
-            x: 50,
-            y: 100,
+            x: 0,  // Final position is container center
+            y: 0,
             scaleX: 0.52,
             scaleY: 0.52,
             duration: 500,
@@ -113,8 +115,10 @@ export class DiscardPileScene extends BaseScene {
     }
 
     async animatePressureCardAddition(pressureCard, insertIndex, totalCards) {
-        // Create pressure card sprite
-        const pressureSprite = this.add.image(50, 100, pressureCard.imageAsset)
+        // Create pressure card sprite at container-relative position
+        const startX = 100;  // Start 100px to the right of container center
+        const startY = 50;   // Start 50px below container center
+        const pressureSprite = this.add.image(startX, startY, pressureCard.imageAsset)
             .setOrigin(0.5)
             .setScale(0.52)
             .setTint(0xff0000); // Red tint for pressure cards
@@ -148,11 +152,11 @@ export class DiscardPileScene extends BaseScene {
             ease: 'Power2'
         });
 
-        // Move to final position
+        // Move to final position (container center)
         timeline.add({
             targets: pressureSprite,
-            x: 50,
-            y: 100,
+            x: 0,
+            y: 0,
             duration: 300,
             ease: 'Back.easeOut'
         });
@@ -213,6 +217,8 @@ export class DiscardPileScene extends BaseScene {
         // Hide empty pile text
         this.emptyPileText.setVisible(false);
     }
+
+
 
     showCardDetails(cardData) {
         // Create details text

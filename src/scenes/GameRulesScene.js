@@ -49,8 +49,10 @@ export class GameRulesScene extends Phaser.Scene {
 
 		// Page 1 content (ends after step 1)
 		const page1Text = [
-			'Welcome to the Lion City...before it was the Lion City. Architect the transformation of swamps and kampungs into a gleaming metropolis. From humble hawker stalls to gleaming skyscrapers, your choices shape the skyline. But beware—the pressure of progress is real, and only the wisest builders endure.',
-			'Objective: Survive 12 turns of city building and maximize Building POINTS while not busting from PRESSURE. The game ends immediately when PRESSURE reaches 5 or more.',
+			'Welcome to the Lion City...before it was the Lion City.',
+			'SG60: Building the Lion City is a single player push your luck style deck building card game set in 1965 when Singapore first gained independence.',
+			'Architect the transformation of swamps and kampungs into a gleaming metropolis. From humble hawker stalls to gleaming skyscrapers, your choices shape the skyline. But beware—the pressure of progress is real, and only the wisest builders endure.',
+			'Objective: Survive 12 turns of city building while maximize Building POINTS while not busting from PRESSURE. The game ends immediately when PRESSURE reaches 5 or more.',
 			'The game is played out over 12 turns in the following sequence',
 			'🎴 1. Play Cards: Draw cards from your deck to Gain Resources',
 			'Step into the planning office. Each card drawn represents a new opportunity that may also come with the mounting PRESSURE of city building.'

@@ -7,12 +7,12 @@ export const GamePhases = {
 };
 
 export const PhaseMessages = {
-    [GamePhases.PLAY_CARDS]: "Click the top of deck to play the next card. \n\nClick the End Phase button to move to the next phase.",
-    [GamePhases.BUILD]: "Buy cards from the MARKET with available resources. \n\nClick the End Phase button to move to the next phase.",
-    [GamePhases.EVOLVE]: "Evolve cards from the Played Cards area, \n\nClick the End Phase button to end this turn.",
+    [GamePhases.PLAY_CARDS]: "This is the PLAY CARDS phase! \n\nClick the top of deck to play the next card and gain RESOURCE. Remember to watch your PRESSURE\n\nYou can click the End Phase button at anytime to move to the BUILD phase.",
+    [GamePhases.BUILD]: "This is the BUILD phase! \n\nBuild new buildings from the MARKET with available resources. \n\nYou can click the End Phase button at any time to move to the EVOLVE phase.",
+    [GamePhases.EVOLVE]: "This is the EVOLVE phase! \n\nEvolve cards from the Played Cards area, \n\nClick the End Phase button to end this turn.",
     [GamePhases.END_TURN]: "Processing end of turn...",
-    [GamePhases.PRESSURE]: "The mounting pressure is too much for a growing nation. Unfortunately your nation has been thrown into turmoil.\n\nRefresh your browser to play again",
-    [GamePhases.GAME_OVER]: "Congratulations! \n\nYour nation survived 12 turns and achieved {points} Building Points!\n\nRefresh your browser to play again"
+    [GamePhases.PRESSURE]: "The mounting pressure is too much for your growing city nation and it has been thrown into turmoil.\n\nRefresh your browser to try again",
+    [GamePhases.GAME_OVER]: "Congratulations! \n\nYour nation survived 12 turns and achieved {points} Building Points!\n\nSee if you can do even better next game! Refresh your browser to play again"
 };
 
 export class GamePhaseManager {
@@ -409,6 +409,7 @@ export class GamePhaseManager {
         };
     }
 
+    /*
     resetGame() {
         this.currentPhase = GamePhases.PLAY_CARDS;
         this.currentTurn = 1;
@@ -448,4 +449,5 @@ export class GamePhaseManager {
         }
         setTimeout(maybeSchedule, 0);
     }
+    */
 }

@@ -107,12 +107,15 @@ export class MarketScene extends BaseScene {
         this.isInteractive = enabled;
         // If createScene hasn't run yet, slots may be empty
         if (!this.marketSlots || this.marketSlots.length === 0) return;
+        
+        // Update opacity for all cards based on new interactivity state
         this.marketSlots.forEach(slot => {
             const card = slot && slot.first;
-            if (card && card.setAlpha) {
-                card.setAlpha(enabled ? 1 : 0.7);
+            if (card && card.isAffordable !== undefined) {
+                this.updateCardOpacity(card, card.isAffordable);
             }
         });
+        
         if (!enabled) this.clearSelection();
         // Re-evaluate affordability and visuals when toggling interactivity
         if (enabled) {
@@ -145,56 +148,30 @@ export class MarketScene extends BaseScene {
                 cardDisplay.cardData = cardData;  // Store card data for reference
                 cardDisplay.cardKey = cardName;   // Also store the hyphen-case key for logic
 
-                // Show remaining count and cost
-                const count = marketState.supply[cardName];
-                if (count > 0) {
-                    // Update or create count text (by name, not relying on order)
-                    let countText = slot.getByName('countText');
-                    if (!countText) {
-                        countText = this.add.text(30, 30, `x${count}`, {
-                            fontSize: '14px',
-                            fill: '#ffffff',
-                            fontFamily: 'Alegreya, serif'
-                        }).setName('countText');
-                        slot.add(countText);
-                    } else {
-                        countText.setText(`x${count}`);
-                    }
-
-                    // TODO [UI Review - Task 6.1]: Current affordability indicators need improvement
-                    // - Using basic color coding (green/red) and opacity changes
-                    // - Consider: different visual treatment, more subtle colors, icons
-                    // - Improve accessibility for color-blind users
-                    
-                    // Add or update cost display
-                    let costText = slot.getByName('costText');
-                    if (!costText) {
-                        costText = this.add.text(-30, 30, `${cardData.cost}💰`, {
-                            fontSize: '14px',
-                            fill: '#ffffff',
-                            fontFamily: 'Alegreya, serif'
-                        }).setName('costText');
-                        slot.add(costText);
-                    } else {
-                        costText.setText(`${cardData.cost}💰`);
-                    }
-                    costText.setFill(cardData.cost <= currentResource ? '#00ff00' : '#ff0000');
+                                    // Show remaining count
+                    const count = marketState.supply[cardName];
+                    if (count > 0) {
+                        // Update or create count text positioned below the card
+                        let countText = slot.getByName('countText');
+                        if (!countText) {
+                            countText = this.add.text(0, 100, `x${count}`, {
+                                fontSize: '14px',
+                                fill: '#ffffff',
+                                fontFamily: 'Alegreya, serif'
+                            }).setOrigin(0.5).setName('countText');
+                            slot.add(countText);
+                        } else {
+                            countText.setText(`x${count}`);
+                        }
 
                     // TODO [UI Review - Task 6.1]: Review visual feedback approach
                     // Current implementation uses aggressive greying out
                     // Consider more subtle visual hints or different interaction patterns
                     const affordable = cardData.cost <= currentResource;
-                    if (this.isInteractive) {
-                        if (affordable) {
-                            cardDisplay.clearTint();
-                            cardDisplay.setAlpha(1);
-                        } else {
-                            cardDisplay.setTint(0x666666);
-                            cardDisplay.setAlpha(0.7);
-                        }
-                    } else {
-                        cardDisplay.setAlpha(0.7);
-                    }
+                    cardDisplay.isAffordable = affordable;
+                    
+                    // Apply consistent opacity based on affordability and interactivity
+                    this.updateCardOpacity(cardDisplay, affordable);
 
                     // Do not disable input; pointerdown handler checks affordability
                 } else {
@@ -202,8 +179,6 @@ export class MarketScene extends BaseScene {
                     cardDisplay.setVisible(false);
                     const countText = slot.getByName('countText');
                     if (countText) countText.setVisible(false);
-                    const costText = slot.getByName('costText');
-                    if (costText) costText.setVisible(false);
                 }
             }
         });
@@ -261,7 +236,15 @@ export class MarketScene extends BaseScene {
             this.marketSlots.forEach((s, idx) => {
                 const img = s.first;
                 if (img) {
-                    if (idx === slotIndex) img.setTint(0x66ff66); else img.clearTint();
+                    if (idx === slotIndex) {
+                        img.setTint(0x66ff66);
+                    } else {
+                        img.clearTint();
+                        // Restore the original opacity using the dedicated method
+                        if (img.isAffordable !== undefined) {
+                            this.updateCardOpacity(img, img.isAffordable);
+                        }
+                    }
                 }
             });
             const messagesScene = this.scene.get('MessagesScene');
@@ -280,8 +263,33 @@ export class MarketScene extends BaseScene {
         return cardDisplay && (cardDisplay.cardKey || (cardDisplay.cardData && cardDisplay.cardData.name)) || null;
     }
 
+    updateCardOpacity(cardDisplay, affordable) {
+        if (!cardDisplay) return;
+        
+        if (this.isInteractive) {
+            if (affordable) {
+                cardDisplay.clearTint();
+                cardDisplay.setAlpha(1);
+            } else {
+                cardDisplay.setTint(0x666666);
+                cardDisplay.setAlpha(0.7);
+            }
+        } else {
+            cardDisplay.setAlpha(0.7);
+        }
+    }
+
     clearSelection() {
         this.selectedSlotIndex = null;
-        this.marketSlots.forEach(s => s.first && s.first.clearTint());
+        this.marketSlots.forEach(s => {
+            const img = s.first;
+            if (img) {
+                img.clearTint();
+                // Restore proper opacity using the dedicated method
+                if (img.isAffordable !== undefined) {
+                    this.updateCardOpacity(img, img.isAffordable);
+                }
+            }
+        });
     }
 }
