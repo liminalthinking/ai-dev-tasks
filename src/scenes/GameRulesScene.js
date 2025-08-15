@@ -38,7 +38,7 @@ export class GameRulesScene extends Phaser.Scene {
 		// Title
         this.titleText = this.add.text(width / 2, 60, 'Game Rules', {
             fontSize: '40px',
-            color: '#ffffff',
+            color: '#000000',
             fontFamily: 'Alegreya, serif'
         }).setOrigin(0.5);
 
@@ -54,13 +54,12 @@ export class GameRulesScene extends Phaser.Scene {
 			'Architect the transformation of swamps and kampungs into a gleaming metropolis. From humble hawker stalls to gleaming skyscrapers, your choices shape the skyline. But beware—the pressure of progress is real, and only the wisest builders endure.',
 			'Objective: Survive 12 turns of city building while maximize Building POINTS while not busting from PRESSURE. The game ends immediately when PRESSURE reaches 5 or more.',
 			'The game is played out over 12 turns in the following sequence',
-			'🎴 1. Play Cards: Draw cards from your deck to Gain Resources',
-			'Step into the planning office. Each card drawn represents a new opportunity that may also come with the mounting PRESSURE of city building.'
+			
 		].join('\n\n');
 
 		this.page1Text = this.add.text(width * 0.2, 140, page1Text, {
-			fontSize: '20px',
-			color: '#dddddd',
+			fontSize: '24px',
+			color: '#000000',
 			wordWrap: { width: width * 0.6 },
 			fontFamily: 'Alegreya, serif'
 		});
@@ -68,18 +67,20 @@ export class GameRulesScene extends Phaser.Scene {
 
 		// Page 2 content (remaining steps)
 		const page2Text = [
+			'🎴 1. Play Cards: Draw cards from your deck to Gain Resources',
+			//'Step into the planning office. Each card drawn represents a new opportunity that may also come with the mounting PRESSURE of city building.'
 			'🏗️ 2. Build: Spend RESOURCE gained from the cards you played to build new cards from the Market Area to add to your city (deck). New buildings go into your discard pile to be reshuffled into your deck at the end of turn.',
-			'Remember: Every build is a step toward a thriving metropolis—but do not forget your roots.',
+			//'Remember: Every build is a step toward a thriving metropolis—but do not forget your roots.',
 			'🔧 3. Evolve: Evolve eligible building cards using the RESOURCE you gained from playing cards this turn',
-			'Evolve kampongs into HDB Blocks. Upgrade street food stalls into iconic hawker centres. Evolve your city with pride, manage growth with care, new establishments can come with new tension (PRESSURE)...',
-			'⏳ 4. End Turn: A PRESSURE card is added to your deck. All cards in your deck, play area and discard pile are shuffled back into your deck',
+			//'Evolve kampongs into HDB Blocks. Upgrade street food stalls into iconic hawker centres. Evolve your city with pride, manage growth with care, new establishments can come with new tension (PRESSURE)...',
+			'⏳ 4. End Turn: All cards in your deck, play area and discard pile are shuffled back into your deck',
 			'',
 			'🏁 If you survive 12 turns, your city becomes a beacon of harmony and progress. Celebrate with fireworks over the Esplanade and cheers from the void decks!'
 		].join('\n\n');
 
 		this.page2Text = this.add.text(width * 0.2, 140, page2Text, {
-			fontSize: '20px',
-			color: '#dddddd',
+			fontSize: '24px',
+			color: '#000000',
 			wordWrap: { width: width * 0.6 },
 			fontFamily: 'Alegreya, serif'
 		});
