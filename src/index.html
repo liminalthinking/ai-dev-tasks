@@ -6,6 +6,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
     <style>
       body {
         margin: 0;
@@ -16,6 +17,11 @@
         min-height: 100vh;
         background: #333;
       }
+      html, body { height: 100%; }
+      /* Keep your centering, but honor safe areas on notch devices */
+      body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+      /* Prevent browser gestures interfering with drag */
+      canvas { touch-action: none; }
       canvas {
         border: 2px solid #666;
       }
