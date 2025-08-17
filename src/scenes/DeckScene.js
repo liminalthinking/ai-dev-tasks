@@ -1,4 +1,5 @@
 import { BaseScene } from './BaseScene';
+import { EventBus } from '../managers/EventBus';
 
 export class DeckScene extends BaseScene {
     constructor(cardInteractionSystem, gamePhaseManager) {
@@ -70,6 +71,8 @@ export class DeckScene extends BaseScene {
                 if (playedCardsScene) {
                     playedCardsScene.addCard(result.card);
                 }
+                // Emit tutorial event for card draw
+                try { EventBus.emit('card:drawn', { card: result.card }); } catch (_) {}
             }
 
             // If game is over, disable deck interaction
@@ -85,5 +88,16 @@ export class DeckScene extends BaseScene {
                 messagesScene.updatePhaseMessage(result.message);
             }
         }
+    }
+
+    getDeckBounds() {
+        // Return world-space bounds for highlighting
+        if (!this.deckDisplay || !this.config || !this.config.bounds) return { x: 0, y: 0, width: 0, height: 0 };
+        const { bounds } = this.config;
+        const w = this.deckDisplay.width * this.deckDisplay.scaleX;
+        const h = this.deckDisplay.height * this.deckDisplay.scaleY;
+        const x = bounds.x + (this.deckDisplay.x - (w / 2));
+        const y = bounds.y + (this.deckDisplay.y - (h / 2));
+        return { x, y, width: w, height: h };
     }
 }

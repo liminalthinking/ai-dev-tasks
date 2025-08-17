@@ -2,6 +2,7 @@ import { GamePhases } from '../managers/GamePhaseManager';
 
 import { BaseScene } from './BaseScene';
 import { SCENE_STYLES } from '../config/SceneConfig';
+import { EventBus } from '../managers/EventBus';
 
 export class MessagesScene extends BaseScene {
     constructor(phaseManager) {
@@ -109,17 +110,22 @@ export class MessagesScene extends BaseScene {
         this.buildButton.visible = false;
         this.buildButton.active = false;
 
-        // Create Play Again button but keep it disabled/hidden for now
+        // Create Play Again button (visible at GAME_OVER)
         this.playAgainButton = this.add.text(
             this.cameras.main.width - 120 - padding,
             this.endPhaseButton.y,
             'Play Again', {
             fontSize: '16px',
-            fill: '#666666',
+            fill: '#ffffff',
             fontFamily: 'Alegreya, serif',
-            backgroundColor: '#222222',
+            backgroundColor: '#444444',
             padding: { x: 10, y: 5 }
-        });
+        })
+        .setOrigin(0.5)
+        .setInteractive()
+        .on('pointerover', () => this.playAgainButton.setBackgroundColor('#666666'))
+        .on('pointerout', () => this.playAgainButton.setBackgroundColor('#444444'))
+        .on('pointerdown', () => this.handlePlayAgainClick());
         this.playAgainButton.visible = false;
 
         // Position buttons centered and ~20% from bottom
@@ -145,6 +151,10 @@ export class MessagesScene extends BaseScene {
         this.buildButton.y = topY;
         this.evolveButton.y = topY;
         this.endPhaseButton.y = bottomY;
+        if (this.playAgainButton) {
+            this.playAgainButton.x = centerX;
+            this.playAgainButton.y = bottomY;
+        }
     }
 
     updatePhaseMessage(message) {
@@ -152,13 +162,18 @@ export class MessagesScene extends BaseScene {
     }
 
     updateButtons(currentPhase, currentResource) {
-        // Handle End Phase button visibility
-        this.endPhaseButton.visible = currentPhase !== GamePhases.GAME_OVER;
-
-        // Play Again disabled for now
+        // Handle End Phase button visibility and Play Again when GAME_OVER
+        const isGameOver = currentPhase === GamePhases.GAME_OVER;
+        this.endPhaseButton.visible = !isGameOver;
         if (this.playAgainButton) {
-            this.playAgainButton.visible = false;
-            this.playAgainButton.disableInteractive && this.playAgainButton.disableInteractive();
+            this.playAgainButton.visible = isGameOver;
+            if (isGameOver) {
+                this.playAgainButton.setBackgroundColor('#444444');
+                this.playAgainButton.setFill('#ffffff');
+                this.playAgainButton.setInteractive();
+            } else {
+                this.playAgainButton.disableInteractive && this.playAgainButton.disableInteractive();
+            }
         }
 
         // Handle Evolve button visibility and state
@@ -198,6 +213,7 @@ export class MessagesScene extends BaseScene {
         this.updatePhaseMessage(result.message);
         const resource = this.phaseManager.cardInteractionSystem.getCurrentResource();
         this.updateButtons(this.phaseManager.getCurrentPhase(), resource);
+        try { EventBus.emit(`phase:changed:${this.phaseManager.getCurrentPhase()}`); } catch (_) {}
     }
 
     handleEvolveClick() {
@@ -226,6 +242,7 @@ export class MessagesScene extends BaseScene {
 
         // Update button states
         this.updateButtons(this.phaseManager.getCurrentPhase(), result.remainingResource);
+        try { if (result.success) EventBus.emit('evolve:done', result); } catch (_) {}
     }
 
     handleBuildClick() {
@@ -243,14 +260,19 @@ export class MessagesScene extends BaseScene {
         }
         const resource = this.phaseManager.cardInteractionSystem.getCurrentResource();
         this.updateButtons(this.phaseManager.getCurrentPhase(), resource);
+        try { if (result.success) EventBus.emit('market:built', result); } catch (_) {}
     }
 
     handlePlayAgainClick() {
-        // Trigger a full reset. Scenes will be stopped and restarted, so
-        // avoid touching any existing Text objects here; the restarted
-        // MessagesScene will initialize its own UI and be updated by
-        // GamePhaseManager.updateScenes() once active.
-        this.phaseManager.resetGame();
+        // Return to the Intro menu using the game's centralized method
+        if (this.game && typeof this.game.returnToIntro === 'function') {
+            this.game.returnToIntro();
+            return;
+        }
+        // Fallback: hard refresh core scenes without tutorial
+        if (typeof this.phaseManager?.resetGame === 'function') {
+            this.phaseManager.resetGame();
+        }
     }
 
     // Called from phase manager at game over
@@ -260,5 +282,43 @@ export class MessagesScene extends BaseScene {
         const points = finalState && typeof finalState.buildingPoints === 'number' ? finalState.buildingPoints : 0;
         this.updatePhaseMessage(`${title}  Building Points: ${points}. Click Play Again to restart.`);
         this.updateButtons(GamePhases.GAME_OVER, 0);
+    }
+
+    // Tutorial helpers
+    getButtonBounds(key) {
+        const map = {
+            endPhase: this.endPhaseButton,
+            build: this.buildButton,
+            evolve: this.evolveButton
+        };
+        const btn = map[key];
+        if (!btn) return { x: 0, y: 0, width: 0, height: 0 };
+        const { bounds } = this.config;
+        const x = bounds.x + (btn.x - btn.width / 2);
+        const y = bounds.y + (btn.y - btn.height / 2);
+        return { x, y, width: btn.width, height: btn.height };
+    }
+
+    forceEnable(flags) {
+        if (!flags) return;
+        if (typeof flags.endPhase === 'boolean') {
+            this.endPhaseButton.visible = true;
+            this.endPhaseButton.active = flags.endPhase;
+            this.endPhaseButton.setBackgroundColor(flags.endPhase ? '#444444' : '#222222');
+            this.endPhaseButton.setFill(flags.endPhase ? '#ffffff' : '#666666');
+        }
+        if (typeof flags.build === 'boolean') {
+            this.buildButton.visible = true;
+            this.buildButton.active = flags.build;
+            this.buildButton.setBackgroundColor(flags.build ? '#444444' : '#222222');
+            this.buildButton.setFill(flags.build ? '#ffffff' : '#666666');
+        }
+        if (typeof flags.evolve === 'boolean') {
+            this.evolveButton.visible = true;
+            this.evolveButton.active = flags.evolve;
+            this.evolveButton.setBackgroundColor(flags.evolve ? '#444444' : '#222222');
+            this.evolveButton.setFill(flags.evolve ? '#ffffff' : '#666666');
+        }
+        this.layoutButtons();
     }
 }

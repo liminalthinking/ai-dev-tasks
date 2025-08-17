@@ -68,11 +68,18 @@ export class IntroScene extends Phaser.Scene {
 			// Immediately stop this scene to avoid re-triggers/flicker
 			try { this.scene.stop('IntroScene'); } catch (_) {}
 			if (this.game && typeof this.game.startCoreScenes === 'function') {
-				this.game.startCoreScenes();
+				this.game.startCoreScenes({ tutorial: false });
 			}
 		});
 
-		createButton('Game Rules', height * 0.72, () => {
+		createButton('Start Tutorial', height * 0.70, () => {
+			try { this.scene.stop('IntroScene'); } catch (_) {}
+			if (this.game && typeof this.game.startCoreScenes === 'function') {
+				this.game.startCoreScenes({ tutorial: true });
+			}
+		});
+
+		createButton('Game Rules', height * 0.78, () => {
 			this.scene.start('GameRulesScene');
 		});
 	}

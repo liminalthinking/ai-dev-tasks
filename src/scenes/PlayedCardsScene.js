@@ -1,4 +1,5 @@
 import { BaseScene } from './BaseScene';
+import { EventBus } from '../managers/EventBus';
 
 export class PlayedCardsScene extends BaseScene {
     constructor(cardInteractionSystem, gamePhaseManager) {
@@ -255,11 +256,34 @@ export class PlayedCardsScene extends BaseScene {
 
             // Show evolution preview
             this.showEvolutionPreview(cardSprite.cardData, cardSprite.x, cardSprite.y);
+
+            // Emit selection for tutorial
+            try { EventBus.emit('evolve:selected', { card: cardSprite.cardData }); } catch (_) {}
         }
     }
 
     clearSelection() {
         this.playedCards.forEach(sprite => sprite.clearTint());
         this.hideEvolutionPreview();
+    }
+
+    // Tutorial helper: first evolvable card bounds in world space
+    getFirstEvolvableBounds() {
+        if (!this.playedCards || this.playedCards.length === 0) return { x: 0, y: 0, width: 0, height: 0 };
+        for (const sprite of this.playedCards) {
+            const data = sprite.cardData;
+            if (!data) continue;
+            const can = this.cardInteractionSystem.canEvolveCard(data.name) &&
+                       this.cardInteractionSystem.getCurrentResource() >= (data.evolveCost || 0);
+            if (can) {
+                const { bounds } = this.config;
+                const w = sprite.width * sprite.scaleX;
+                const h = sprite.height * sprite.scaleY;
+                const x = bounds.x + this.cardContainer.x + (sprite.x - w / 2);
+                const y = bounds.y + this.cardContainer.y + (sprite.y - h / 2);
+                return { x, y, width: w, height: h };
+            }
+        }
+        return { x: 0, y: 0, width: 0, height: 0 };
     }
 }

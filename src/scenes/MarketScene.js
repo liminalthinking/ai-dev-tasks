@@ -1,6 +1,7 @@
 import { CardData } from '../data/CardProperties';
 import { BaseScene } from './BaseScene';
 import { AssetLoader } from '../utils/AssetLoader';
+import { EventBus } from '../managers/EventBus';
 
 export class MarketScene extends BaseScene {
     constructor(cardInteractionSystem, gamePhaseManager) {
@@ -11,6 +12,7 @@ export class MarketScene extends BaseScene {
         this.isInteractive = false;
         this.selectedSlotIndex = null;
         this.hoverPreviews = new Map();
+        this.allowedKeys = null; // tutorial whitelist
     }
 
     // No preload required; MarketScene relies on specific card textures only.
@@ -229,6 +231,7 @@ export class MarketScene extends BaseScene {
         if (cardDisplay.cardData) {
             // Only allow selection when card is affordable
             const key = cardDisplay.cardKey;
+            if (this.allowedKeys && !this.allowedKeys.includes(key)) return;
             const canBuild = key && this.cardInteractionSystem.canBuildCard(key);
             if (!canBuild) return;
             // Select the slot, enable Build button via MessagesScene
@@ -252,6 +255,7 @@ export class MarketScene extends BaseScene {
                 const resource = this.cardInteractionSystem.getCurrentResource();
                 messagesScene.updateButtons('build', resource);
             }
+            try { EventBus.emit('market:slotSelected', { key }); } catch (_) {}
         }
     }
 
@@ -291,5 +295,23 @@ export class MarketScene extends BaseScene {
                 }
             }
         });
+    }
+
+    // Tutorial helpers
+    getSlotBounds(index) {
+        const slot = this.marketSlots[index];
+        if (!slot) return { x: 0, y: 0, width: 0, height: 0 };
+        const img = slot.first;
+        if (!img) return { x: 0, y: 0, width: 0, height: 0 };
+        const { bounds } = this.config;
+        const w = img.width * img.scaleX;
+        const h = img.height * img.scaleY;
+        const x = bounds.x + slot.x + (img.x - w / 2);
+        const y = bounds.y + slot.y + (img.y - h / 2);
+        return { x, y, width: w, height: h };
+    }
+
+    setAllowedKeys(keysOrNull) {
+        this.allowedKeys = Array.isArray(keysOrNull) ? [...keysOrNull] : null;
     }
 }
