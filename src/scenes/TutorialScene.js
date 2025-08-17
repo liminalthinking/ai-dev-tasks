@@ -105,6 +105,14 @@ export class TutorialScene extends Phaser.Scene {
         const pos = this._anchorToXY(anchor, panelWidth, panelHeight);
         this.ui.panel.setPosition(pos.x + offsetX, pos.y + offsetY);
 
+        // Enable/disable backdrop interactivity depending on step advancement
+        const shouldSwallow = (step && (step.advance === 'clickAnywhere' || step.waitFor === 'next'));
+        if (shouldSwallow) {
+            this.ui.dim.setInteractive({ useHandCursor: false });
+        } else {
+            this.ui.dim.disableInteractive();
+        }
+
         // Highlight target if provided (simple stroked rect)
         this.ui.highlight.clear();
         if (step && typeof step.highlight === 'function') {

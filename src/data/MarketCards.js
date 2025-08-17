@@ -109,4 +109,11 @@ export class MarketCards {
     static isMarketCard(cardName) {
         return CardData[cardName]?.type === CardType.MARKET;
     }
+
+    // Deterministic market for tutorial: leave defaults but allow override
+    seedForTutorial() {
+        // Ensure at least one affordable slot (provision-shop cost 1)
+        this.cardSupply['provision-shop'] = Math.max(this.cardSupply['provision-shop'] || 0, 1);
+        // Keep fixed slots order as-is
+    }
 }

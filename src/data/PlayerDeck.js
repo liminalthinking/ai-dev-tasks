@@ -179,4 +179,17 @@ export class PlayerDeck {
         ];
         return allCards.reduce((total, card) => total + (card.points || 0), 0);
     }
+
+    // Deterministic deck for tutorial: ensure first draw yields Resource (kampung)
+    seedForTutorial() {
+        // Clear all piles
+        this.drawPile = [];
+        this.playedCards = [];
+        this.discardPile = [];
+        // Build a known order; drawCard() pops from the end, so put the desired first draw last
+        const swamp = { ...CardData['swamp'] };
+        const kampung1 = { ...CardData['kampung'] };
+        const kampung2 = { ...CardData['kampung'] };
+        this.drawPile = [swamp, kampung1, kampung2]; // first draw -> kampung2 (resource 1)
+    }
 }

@@ -104,6 +104,9 @@ class Game extends Phaser.Game {
 
         // If tutorial mode, add Tutorial scene on top and initialize manager
         if (opts && opts.tutorial) {
+            // Seed deterministic state for tutorial
+            try { this.playerDeck.seedForTutorial && this.playerDeck.seedForTutorial(); } catch (_) {}
+            try { this.marketCards.seedForTutorial && this.marketCards.seedForTutorial(); } catch (_) {}
             // Ensure bus exists (scaffold)
             if (!this.eventBus) {
                 this.eventBus = EventBus;
