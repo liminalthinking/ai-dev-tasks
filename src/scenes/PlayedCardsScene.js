@@ -1,4 +1,5 @@
 import { BaseScene } from './BaseScene';
+import { CardUtils } from '../data/CardProperties';
 import { EventBus } from '../managers/EventBus';
 
 export class PlayedCardsScene extends BaseScene {
@@ -48,8 +49,9 @@ export class PlayedCardsScene extends BaseScene {
             .setOrigin(0.5)
             .setScale(0.52);  // Increased size by 30%
         
-        // Store card data with sprite
+        // Store card data with sprite and a normalized key
         cardSprite.cardData = cardData;
+        cardSprite.cardKey = (CardUtils && CardUtils.resolveKey) ? (CardUtils.resolveKey(cardData.name) || cardData.name) : cardData.name;
 
 
 
@@ -285,5 +287,19 @@ export class PlayedCardsScene extends BaseScene {
             }
         }
         return { x: 0, y: 0, width: 0, height: 0 };
+    }
+
+    // Tutorial helper: bounds for a specific played card by name (e.g., 'kampung')
+    getPlayedCardBoundsByName(cardNameOrKey) {
+        if (!cardNameOrKey || !this.playedCards || this.playedCards.length === 0) return { x: 0, y: 0, width: 0, height: 0 };
+        const normalized = (CardUtils && CardUtils.resolveKey) ? (CardUtils.resolveKey(cardNameOrKey) || cardNameOrKey) : cardNameOrKey;
+        const sprite = this.playedCards.find(s => (s.cardKey === normalized) || (s.cardData && s.cardData.name === cardNameOrKey));
+        if (!sprite) return { x: 0, y: 0, width: 0, height: 0 };
+        const { bounds } = this.config;
+        const w = sprite.width * sprite.scaleX;
+        const h = sprite.height * sprite.scaleY;
+        const x = bounds.x + this.cardContainer.x + (sprite.x - w / 2);
+        const y = bounds.y + this.cardContainer.y + (sprite.y - h / 2);
+        return { x, y, width: w, height: h };
     }
 }

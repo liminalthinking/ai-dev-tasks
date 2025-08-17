@@ -5,22 +5,76 @@ import { IntroScene } from '../scenes/IntroScene';
 const DEFAULT_STEPS = [
     {
         id: 'welcome',
-        title: 'Welcome to SG60',
-        text: 'We’ll play a short guided run. See Rules > Overview for the full loop.',
-        panel: { anchor: 'top-center', offsetY: 24, maxWidth: 520, align: 'center' },
+        title: 'Welcome!',
+        text: 'SG60: Building the Lion City is a single player deckbuilding game.\n\nEach game begins with an identical deck of 3 cards that you can evolve and add to as the game progresses..',
+        panel: { anchor: 'top-center', offsetY: 100, maxWidth: 520, align: 'center' },
         highlight: null,
         allow: (ctx) => ctx.disableAll(),
         waitFor: 'next'
     },
     {
+        id: 'startingdeck',
+        title: 'Your Starting Deck',
+        text: 'Each deck starts with 2 kampung cards and 1 swamp card.\n\nThese cards produce Resource as well as Pressure.',
+        panel: { anchor: 'top-center', offsetY: 100, maxWidth: 520, align: 'center' },
+        highlight: null,
+        allow: (ctx) => ctx.disableAll(),
+        waitFor: 'next'
+    },
+    {
+        id: 'card-explain-kampung',
+        mode: 'card-explainer',
+        title: '',
+        text: 'Each Kampung card provides 1 Resource which can be used to acquire additional cards for your deck.',
+        panel: { anchor: 'center-left', offsetX: 100, maxWidth: 300 },
+        media: {
+            textureKey: 'provision-shop',
+            url: 'assets/images/cards/provision-shop.png',
+            fit: 'contain',
+            anchor: 'center',
+            offsetX: 24,
+            caption: ''
+        },
+        advance: 'clickAnywhere',
+        allow: (ctx) => ctx.disableAll()
+    },
+    {
         id: 'play-cards',
         title: 'Play Cards Phase',
-        text: 'Click the deck to draw. You gain Resource and may gain Pressure (bust at 5). See Rules > Play Cards.',
-        panel: { anchor: 'center-right', offsetX: -24, maxWidth: 420 },
+        text: 'The game starts with the play cards phase.\n\nPlay a card from your deck by clicking on the deck',
+        panel: { anchor: 'bottom-left', offsetX: 24, maxWidth: 420 },
         highlight: (ctx) => ctx.deckBounds(),
         allow: (ctx) => ctx.enableDeckOnly(),
         waitFor: 'card:drawn'
     },
+    {
+        id: 'play-cards-kampung',
+        title: '',
+        text: 'You have played a Kampung card.\n\nIt gives you 1 resource.',
+        panel: { anchor: 'bottom-left', offsetX: 24, maxWidth: 420 },
+        highlight: (ctx) => ctx.playCardBounds('kampung'),
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+    {
+        id: 'show-market',
+        title: '',
+        text: 'The cards in the middle row is the Market. \n\nThey are always available during the course of the game. ',
+        panel: { anchor: 'center-right', offsetX: -24, offsetY: 0, maxWidth: 320 },
+        highlight: (ctx) => ctx.marketBounds(),
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+    {
+        id: 'show-market-card-2',
+        title: '',
+        text: 'These cards can be acquired during the your turn as long as you have enough resources.',
+        panel: { anchor: 'center-right', offsetX: -24, offsetY: 0, maxWidth: 320 },
+        highlight: (ctx) => ctx.marketBounds(),
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+
     {
         id: 'hud-stats',
         title: 'HUD Updates',
@@ -249,9 +303,14 @@ export class TutorialManager {
             },
             allowButtons: (flags) => { messagesScene && messagesScene.forceEnable(flags); return this._ctx(); },
             deckBounds: () => deckScene && deckScene.getDeckBounds ? deckScene.getDeckBounds() : null,
+            marketBounds: () => {
+                const cfg = marketScene && marketScene.config && marketScene.config.bounds;
+                return cfg ? { x: cfg.x, y: cfg.y, width: cfg.width, height: cfg.height } : null;
+            },
             marketSlotBounds: (i) => marketScene && marketScene.getSlotBounds ? marketScene.getSlotBounds(i) : null,
             buttonBounds: (k) => messagesScene && messagesScene.getButtonBounds ? messagesScene.getButtonBounds(k) : null,
             firstEvolvableBounds: () => playedScene && playedScene.getFirstEvolvableBounds ? playedScene.getFirstEvolvableBounds() : null,
+            playCardBounds: (name) => playedScene && playedScene.getPlayedCardBoundsByName ? playedScene.getPlayedCardBoundsByName(name) : null,
             hudResourcePressureBounds: () => {
                 // Approximate HUD group by taking HUD scene bounds top area
                 const cfg = hudScene && hudScene.config && hudScene.config.bounds;
