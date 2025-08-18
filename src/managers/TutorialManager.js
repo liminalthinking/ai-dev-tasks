@@ -68,30 +68,116 @@ const DEFAULT_STEPS = [
     {
         id: 'show-market-card-2',
         title: '',
-        text: 'These cards can be acquired during the your turn as long as you have enough resources.',
+        text: 'These cards can be acquired during your turn when you have enough Resource.',
         panel: { anchor: 'center-right', offsetX: -24, offsetY: 0, maxWidth: 320 },
         highlight: (ctx) => ctx.marketBounds(),
         advance: 'clickAnywhere',
         waitFor: 'next'
     },
-
     {
-        id: 'hud-stats',
-        title: 'HUD Updates',
-        text: 'Resource increases from played cards; Pressure rises too. Track both here. See Rules > HUD.',
-        panel: { anchor: 'top-left', offsetX: 24, offsetY: 24, maxWidth: 420 },
+        id: 'play-cards-2',
+        title: '',
+        text: 'To increase the number of resource, you want to play as many cards as possible from your deck to gain Resource.\n\nClick the deck to play the next card',
+        panel: { anchor: 'bottom-left', offsetX: 24, maxWidth: 420 },
+        highlight: (ctx) => ctx.deckBounds(),
+        allow: (ctx) => ctx.enableDeckOnly(),
+        waitFor: 'card:drawn'
+    },
+    {
+        id: 'play-cards-swamp',
+        title: '',
+        text: 'You have played a Swamp card.\n\nIt produces you 1 Pressure.',
+        panel: { anchor: 'bottom-left', offsetX: 24, maxWidth: 420 },
+        highlight: (ctx) => ctx.playCardBounds('swamp'),
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+    {
+        id: 'explain-icon-pressure',
+        title: '',
+        text: 'Other than Resource, cards can also produce Pressure.\n\nThe game ends immediately when you have 5 Pressure.',
+        panel: { anchor: 'bottom-center', offsetX: 24, offsetY: 0, maxWidth: 320 },
+        highlight: (ctx) => ctx.playCardStatBounds('swamp', 'pressure'),
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+    {
+        id: 'explain-objective-points',
+        title: '',
+        text: 'The objective of the game is to get as many Points as possible without busting.',
+        panel: { anchor: 'top-left', offsetX: 0, offsetY: 75, maxWidth: 420 },
         highlight: (ctx) => ctx.hudResourcePressureBounds(),
         allow: (ctx) => ctx.disableAll(),
         waitFor: 'next'
     },
     {
-        id: 'advance-to-build',
-        title: 'Advance to Build',
-        text: 'Advance when done drawing via End Phase. See Rules > Phase Flow.',
-        panel: { anchor: 'bottom-center', offsetY: -24, maxWidth: 420 },
+        id: 'hud-stats',
+        title: '',
+        text: 'You can track your Resource, Pressure and Points at the top.',
+        panel: { anchor: 'top-left', offsetX: 0, offsetY: 75, maxWidth: 420 },
+        highlight: (ctx) => ctx.hudResourcePressureBounds(),
+        allow: (ctx) => ctx.disableAll(),
+        waitFor: 'next'
+    },
+    {
+        id: 'play-cards-3',
+        title: '',
+        text: 'Since you are only at 1/5 Pressure, let\'s go ahead and draw the last card in your deck to gain more Resource.\n\nClick the deck to play the next card',
+        panel: { anchor: 'bottom-left', offsetX: 24, maxWidth: 420 },
+        highlight: (ctx) => ctx.deckBounds(),
+        allow: (ctx) => ctx.enableDeckOnly(),
+        waitFor: 'card:drawn'
+    },
+    {
+        id: 'play-cards-kampung-2',
+        title: '',
+        text: 'You have played the 2nd Kampung card from your starting deck.\n\nIt gives you 1 resource.',
+        panel: { anchor: 'bottom-left', offsetX: 24, maxWidth: 420 },
+        highlight: (ctx) => ctx.playCardBounds('kampung'),
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+    {
+        id: 'empty-deck',
+        title: '',
+        text: 'Since there are no more cards in your deck, you must now end the Play Cards phase.\n\n',
+        panel: { anchor: 'bottom-left', offsetX: 24, maxWidth: 420 },
+        highlight: (ctx) => ctx.playCardBounds('kampung'),
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+    {
+        id: 'end-phase-explanation',
+        title: '',
+        text: 'Note that you may end the Play Cards phase at any time by clicking on the "End Phase" button.\n\nYou do not need to draw all the cards in your deck.\n\nNow click on the "End Phase" button to advance to the Build phase.',
+        panel: { anchor: 'center-right', offsetY: 100, maxWidth: 320 },
         highlight: (ctx) => ctx.buttonBounds('endPhase'),
         allow: (ctx) => ctx.allowButtons({ endPhase: true }),
         waitFor: 'phase:changed:build'
+    },
+    {
+        id: 'build-phase',
+        title: '',
+        text: 'You are now in the Build Phase.\n\n',
+        panel: { anchor: 'center-center', offsetX: 24, maxWidth: 420 },
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+    {
+        id: 'build-phase-explanation',
+        title: '',
+        text: 'In the Build phase, you can build any number of cards from the Market you have enough Resource.\n\n.',
+        panel: { anchor: 'bottom-center', offsetX: 0, maxWidth: 420 },
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+    {
+        id: 'eligible-cards',
+        title: '',
+        text: 'The cards you are eligibllt to buy have a silver medalion\n.',
+        panel: { anchor: 'bottom-center', offsetX: 0, maxWidth: 420 },
+        advance: 'clickAnywhere',
+        waitFor: 'next'
     },
     {
         id: 'card-explain-provision-shop',
@@ -311,6 +397,7 @@ export class TutorialManager {
             buttonBounds: (k) => messagesScene && messagesScene.getButtonBounds ? messagesScene.getButtonBounds(k) : null,
             firstEvolvableBounds: () => playedScene && playedScene.getFirstEvolvableBounds ? playedScene.getFirstEvolvableBounds() : null,
             playCardBounds: (name) => playedScene && playedScene.getPlayedCardBoundsByName ? playedScene.getPlayedCardBoundsByName(name) : null,
+            playCardStatBounds: (name, stat) => playedScene && playedScene.getPlayedCardStatBounds ? playedScene.getPlayedCardStatBounds(name, stat) : null,
             hudResourcePressureBounds: () => {
                 // Approximate HUD group by taking HUD scene bounds top area
                 const cfg = hudScene && hudScene.config && hudScene.config.bounds;

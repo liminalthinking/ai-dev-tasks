@@ -293,13 +293,41 @@ export class PlayedCardsScene extends BaseScene {
     getPlayedCardBoundsByName(cardNameOrKey) {
         if (!cardNameOrKey || !this.playedCards || this.playedCards.length === 0) return { x: 0, y: 0, width: 0, height: 0 };
         const normalized = (CardUtils && CardUtils.resolveKey) ? (CardUtils.resolveKey(cardNameOrKey) || cardNameOrKey) : cardNameOrKey;
-        const sprite = this.playedCards.find(s => (s.cardKey === normalized) || (s.cardData && s.cardData.name === cardNameOrKey));
+        // Prefer the most recently played matching card (iterate from rightmost)
+        let sprite = null;
+        for (let i = this.playedCards.length - 1; i >= 0; i--) {
+            const s = this.playedCards[i];
+            if ((s.cardKey === normalized) || (s.cardData && s.cardData.name === cardNameOrKey)) {
+                sprite = s;
+                break;
+            }
+        }
         if (!sprite) return { x: 0, y: 0, width: 0, height: 0 };
         const { bounds } = this.config;
         const w = sprite.width * sprite.scaleX;
         const h = sprite.height * sprite.scaleY;
         const x = bounds.x + this.cardContainer.x + (sprite.x - w / 2);
         const y = bounds.y + this.cardContainer.y + (sprite.y - h / 2);
+        return { x, y, width: w, height: h };
+    }
+
+    // Tutorial helper: bounds for a specific stat region within a played card
+    // statKey: 'resource' | 'pressure' | 'points'
+    getPlayedCardStatBounds(cardNameOrKey, statKey) {
+        const full = this.getPlayedCardBoundsByName(cardNameOrKey);
+        if (!full || !full.width || !full.height) return { x: 0, y: 0, width: 0, height: 0 };
+
+        // Normalized approximate locations of stat badges on card artwork (bottom row)
+        const layout = {
+            resource: { x: 0.12, y: 0.80, w: 0.18, h: 0.14 },
+            pressure: { x: 0.21, y: 0.55, w: 0.20, h: 0.16 },
+            points:   { x: 0.76, y: 0.80, w: 0.18, h: 0.14 }
+        };
+        const norm = layout[statKey] || layout.resource;
+        const x = full.x + (norm.x * full.width);
+        const y = full.y + (norm.y * full.height);
+        const w = norm.w * full.width;
+        const h = norm.h * full.height;
         return { x, y, width: w, height: h };
     }
 }

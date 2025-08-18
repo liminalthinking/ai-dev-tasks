@@ -190,6 +190,8 @@ export class PlayerDeck {
         const swamp = { ...CardData['swamp'] };
         const kampung1 = { ...CardData['kampung'] };
         const kampung2 = { ...CardData['kampung'] };
-        this.drawPile = [swamp, kampung1, kampung2]; // first draw -> kampung2 (resource 1)
+        // Draw order is from the END of the array. To draw: KAMPUNG (1st), SWAMP (2nd), KAMPUNG (3rd),
+        // set the internal array to [KAMPUNG, SWAMP, KAMPUNG]
+        this.drawPile = [kampung1, swamp, kampung2];
     }
 }
