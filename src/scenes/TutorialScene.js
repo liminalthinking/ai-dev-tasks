@@ -6,6 +6,7 @@ export class TutorialScene extends Phaser.Scene {
         this.tutorialManager = tutorialManager;
         this.ui = {};
         this.currentStepId = null;
+        this._mediaInfo = null;
     }
 
     create() {
@@ -147,7 +148,7 @@ export class TutorialScene extends Phaser.Scene {
 
         // Draw visual dim as a frame around the highlight rect(s)
         this.ui.shade.clear();
-        this.ui.shade.fillStyle(0x000000, 0.5);
+        this.ui.shade.fillStyle(0x000000, 0.75);
         if (!frameRects.length) {
             // No highlight: dim whole screen
             this.ui.shade.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
@@ -171,7 +172,7 @@ export class TutorialScene extends Phaser.Scene {
         // Draw highlight outlines
         this.ui.highlight.clear();
         if (rects.length) {
-            this.ui.highlight.lineStyle(3, 0xffff66, 1);
+            this.ui.highlight.lineStyle(3, 0xFF0000, 1);
             rects.forEach(r => {
                 this.ui.highlight.strokeRect(r.x, r.y, r.width, r.height);
             });
@@ -203,7 +204,8 @@ export class TutorialScene extends Phaser.Scene {
         image.setScale(scale);
 
         // Position by anchor
-        const anchor = step.media.anchor || 'center';
+        // Normalize anchor synonyms (e.g., 'center-center' -> 'center')
+        const anchor = (step.media.anchor === 'center-center') ? 'center' : (step.media.anchor || 'center');
         const offsetX = step.media.offsetX || 0;
         const offsetY = step.media.offsetY || 0;
         const b = image.getBounds();
@@ -211,12 +213,37 @@ export class TutorialScene extends Phaser.Scene {
         image.setPosition(pos.x + b.width / 2 + offsetX, pos.y + b.height / 2 + offsetY);
         this.ui.mediaContainer.add(image);
 
+        // Persist media info for other steps to reference (e.g., highlight relative to media)
+        const centerX = image.x;
+        const centerY = image.y;
+        const topLeftX = pos.x + offsetX;
+        const topLeftY = pos.y + offsetY;
+        this._mediaInfo = {
+            anchor,
+            offsetX,
+            offsetY,
+            displayWidth: image.displayWidth,
+            displayHeight: image.displayHeight,
+            center: { x: centerX, y: centerY },
+            topLeft: { x: topLeftX, y: topLeftY },
+            rect: { x: centerX - image.displayWidth / 2, y: centerY - image.displayHeight / 2, width: image.displayWidth, height: image.displayHeight }
+        };
+
         // Caption
         if (step.media.caption) {
             const caption = this.add.text(image.x, image.y + (image.displayHeight / 2) + 10, step.media.caption, {
                 fontSize: '14px', fill: '#eeeeee', fontFamily: 'Alegreya, serif', align: 'center', wordWrap: { width: Math.max(image.displayWidth, 320) }
             }).setOrigin(0.5, 0);
             this.ui.mediaContainer.add(caption);
+        }
+
+        // Ensure highlight stays above media (media can be added asynchronously after loads)
+        if (this.ui && this.ui.root && this.ui.highlight) {
+            this.ui.root.bringToTop(this.ui.highlight);
+        }
+        // Keep Exit button above the highlight
+        if (this.ui && this.ui.root && this.ui.exitBtn) {
+            this.ui.root.bringToTop(this.ui.exitBtn);
         }
     }
 
@@ -228,12 +255,30 @@ export class TutorialScene extends Phaser.Scene {
             case 'top-right': return { x: gw - width - 12, y: 12 };
             case 'center-left': return { x: 12, y: (gh - height) / 2 };
             case 'center': return { x: (gw - width) / 2, y: (gh - height) / 2 };
+            case 'center-center': return { x: (gw - width) / 2, y: (gh - height) / 2 };
             case 'center-right': return { x: gw - width - 12, y: (gh - height) / 2 };
             case 'bottom-left': return { x: 12, y: gh - height - 12 };
             case 'bottom-center': return { x: (gw - width) / 2, y: gh - height - 12 };
             case 'bottom-right': return { x: gw - width - 12, y: gh - height - 12 };
             default: return { x: (gw - width) / 2, y: 12 };
         }
+    }
+
+    // Expose most recent media placement/sizing so highlights can be computed relative to the enlarged card
+    getMediaInfo() {
+        // Return a shallow copy to avoid accidental external mutation
+        if (!this._mediaInfo) return null;
+        const i = this._mediaInfo;
+        return {
+            anchor: i.anchor,
+            offsetX: i.offsetX,
+            offsetY: i.offsetY,
+            displayWidth: i.displayWidth,
+            displayHeight: i.displayHeight,
+            center: { x: i.center.x, y: i.center.y },
+            topLeft: { x: i.topLeft.x, y: i.topLeft.y },
+            rect: { x: i.rect.x, y: i.rect.y, width: i.rect.width, height: i.rect.height }
+        };
     }
 }
 

@@ -295,15 +295,7 @@ const DEFAULT_STEPS = [
             offsetX: 24,
             caption: 'Affordable early pick to grow economy.'
         },
-        highlight: (ctx) => {
-            const rect = ctx.playCardStatBounds('street-food-stall', 'resource');
-            return {
-                x: rect.x,
-                y: rect.y,
-                width: rect.width,
-                height: rect.height
-            };
-        },
+        highlight: (ctx) => ctx.mediaRelativeRect({ from: 'topLeft', offsetX: 20, offsetY: 300, width: 125, height: 62 }),
         advance: 'clickAnywhere',
         allow: (ctx) => ctx.disableAll()
     },
@@ -462,6 +454,7 @@ export class TutorialManager {
         const messagesScene = this.sceneManager.getScene('MessagesScene');
         const playedScene = this.sceneManager.getScene('PlayedCardsScene');
         const hudScene = this.sceneManager.getScene('HUDScene');
+        const tutorialScene = this.scene;
         return {
             disableAll: () => {
                 deckScene && deckScene.setInteractive(false);
@@ -518,6 +511,19 @@ export class TutorialManager {
                 const cfg = hudScene && hudScene.config && hudScene.config.bounds;
                 if (!cfg) return null;
                 return { x: cfg.x + 10, y: cfg.y + 10, width: 600, height: 80 };
+            },
+            // Provide accessors for media info and helper to compute rect relative to media
+            mediaInfo: () => tutorialScene && typeof tutorialScene.getMediaInfo === 'function' ? tutorialScene.getMediaInfo() : null,
+            mediaRelativeRect: (opts) => {
+                const info = tutorialScene && typeof tutorialScene.getMediaInfo === 'function' ? tutorialScene.getMediaInfo() : null;
+                if (!info) return null;
+                const from = (opts && opts.from) || 'topLeft'; // 'topLeft' or 'center'
+                const base = from === 'center' ? info.center : info.topLeft;
+                const x = base.x + ((opts && opts.offsetX) || 0);
+                const y = base.y + ((opts && opts.offsetY) || 0);
+                const width = (opts && opts.width) || 0;
+                const height = (opts && opts.height) || 0;
+                return { x, y, width, height };
             }
         };
     }
