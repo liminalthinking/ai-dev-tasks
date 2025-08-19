@@ -20,6 +20,10 @@ export class TutorialScene extends Phaser.Scene {
             .setOrigin(0, 0)
             .setInteractive({ useHandCursor: false });
         this.ui.root.add(this.ui.dim);
+        
+        // Shaded frame for visual dimming (we'll draw 4 rects around the highlight area)
+        this.ui.shade = this.add.graphics();
+        this.ui.root.add(this.ui.shade);
 
         // Spotlight highlight rectangle (simple outline for scaffold)
         this.ui.highlight = this.add.graphics();
@@ -90,10 +94,18 @@ export class TutorialScene extends Phaser.Scene {
 
         // Layout panel size
         // First position at 0,0 to measure
-        this.ui.title.setPosition(16, 14);
-        const titleBottom = this.ui.title.y + this.ui.title.height;
-        this.ui.body.setPosition(16, titleBottom + 10);
-        const bodyBottom = this.ui.body.y + this.ui.body.height;
+        if (title === '') {
+            // No title: don't show title, don't offset body
+            this.ui.title.setPosition(16, 14);
+            this.ui.title.setText(''); // ensure it's empty
+            this.ui.body.setPosition(16, 14);
+            var bodyBottom = this.ui.body.y + this.ui.body.height;
+        } else {
+            this.ui.title.setPosition(16, 14);
+            const titleBottom = this.ui.title.y + this.ui.title.height;
+            this.ui.body.setPosition(16, titleBottom + 10);
+            var bodyBottom = this.ui.body.y + this.ui.body.height;
+        }
         const panelWidth = maxWidth + 32;
         const panelHeight = bodyBottom + 16;
         this.ui.panelBg.setSize(panelWidth, panelHeight);
@@ -113,21 +125,56 @@ export class TutorialScene extends Phaser.Scene {
             this.ui.dim.disableInteractive();
         }
 
-        // Highlight target(s) if provided (supports single rect or array of rects)
-        this.ui.highlight.clear();
+        // Compute highlight rectangles once
+        let rects = [];
         if (step && typeof step.highlight === 'function') {
             try {
                 const result = step.highlight();
-                const rects = Array.isArray(result) ? result : (result ? [result] : []);
-                if (rects.length) {
-                    this.ui.highlight.lineStyle(3, 0xffff66, 1);
-                    rects.forEach(r => {
-                        if (r && r.width && r.height) {
-                            this.ui.highlight.strokeRect(r.x, r.y, r.width, r.height);
-                        }
-                    });
-                }
+                rects = Array.isArray(result) ? result : (result ? [result] : []);
             } catch (_) {}
+        }
+
+        // If there are multiple highlights, use a simple bounding box for the frame
+        // to avoid over-darkening when drawing 4-rect frames per hole.
+        let frameRects = rects;
+        if (rects.length > 1) {
+            const minX = Math.min(...rects.map(r => r.x));
+            const minY = Math.min(...rects.map(r => r.y));
+            const maxX = Math.max(...rects.map(r => r.x + r.width));
+            const maxY = Math.max(...rects.map(r => r.y + r.height));
+            frameRects = [{ x: minX, y: minY, width: maxX - minX, height: maxY - minY }];
+        }
+
+        // Draw visual dim as a frame around the highlight rect(s)
+        this.ui.shade.clear();
+        this.ui.shade.fillStyle(0x000000, 0.5);
+        if (!frameRects.length) {
+            // No highlight: dim whole screen
+            this.ui.shade.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+        } else {
+            frameRects.forEach(r => {
+                if (!r || !r.width || !r.height) return;
+                // top
+                this.ui.shade.fillRect(0, 0, GAME_WIDTH, r.y);
+                // left
+                this.ui.shade.fillRect(0, r.y, r.x, r.height);
+                // right
+                this.ui.shade.fillRect(r.x + r.width, r.y, GAME_WIDTH - (r.x + r.width), r.height);
+                // bottom
+                this.ui.shade.fillRect(0, r.y + r.height, GAME_WIDTH, GAME_HEIGHT - (r.y + r.height));
+            });
+        }
+
+        // Keep input-swallowing rectangle transparent; shade handles the visual dim
+        this.ui.dim.setFillStyle(0x000000, 0);
+
+        // Draw highlight outlines
+        this.ui.highlight.clear();
+        if (rects.length) {
+            this.ui.highlight.lineStyle(3, 0xffff66, 1);
+            rects.forEach(r => {
+                this.ui.highlight.strokeRect(r.x, r.y, r.width, r.height);
+            });
         }
 
         // Media (card-explainer)

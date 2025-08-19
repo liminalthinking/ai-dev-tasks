@@ -49,6 +49,9 @@ export class DeckScene extends BaseScene {
         // Respect current phase; if already in Play Cards, enable immediately
         const isPlayCards = this.gamePhaseManager && this.gamePhaseManager.getCurrentPhase && this.gamePhaseManager.getCurrentPhase() === 'playCards';
         this.setInteractive(!!isPlayCards);
+
+        // Ensure visibility matches deck state on first render
+        this.updateDeckVisibility();
     }
 
     // Hover preview intentionally disabled for DeckScene per UX request
@@ -58,7 +61,8 @@ export class DeckScene extends BaseScene {
         // Guard against calls before createScene finished (e.g., right after a reset)
         if (!this.deckDisplay) return;
         this.deckDisplay.setAlpha(enabled ? 1 : 0.7);
-        this.deckDisplay.input && this.deckDisplay.input.enabled !== undefined && (this.deckDisplay.input.enabled = enabled);
+        // Update visibility and input based on whether there are cards to draw
+        this.updateDeckVisibility();
     }
 
     async handleDeckClick() {
@@ -88,6 +92,9 @@ export class DeckScene extends BaseScene {
                 messagesScene.updatePhaseMessage(result.message);
             }
         }
+
+        // After attempting a draw, refresh visibility in case deck became empty
+        this.updateDeckVisibility();
     }
 
     getDeckBounds() {
@@ -99,5 +106,15 @@ export class DeckScene extends BaseScene {
         const x = bounds.x + (this.deckDisplay.x - (w / 2));
         const y = bounds.y + (this.deckDisplay.y - (h / 2));
         return { x, y, width: w, height: h };
+    }
+
+    // Hide the deck backing when there are no more cards to draw
+    updateDeckVisibility() {
+        if (!this.deckDisplay) return;
+        const isEmpty = !!(this.cardInteractionSystem && this.cardInteractionSystem.playerDeck && this.cardInteractionSystem.playerDeck.isDrawPileEmpty && this.cardInteractionSystem.playerDeck.isDrawPileEmpty());
+        this.deckDisplay.setVisible(!isEmpty);
+        if (this.deckDisplay.input && this.deckDisplay.input.enabled !== undefined) {
+            this.deckDisplay.input.enabled = this.isInteractive && !isEmpty;
+        }
     }
 }

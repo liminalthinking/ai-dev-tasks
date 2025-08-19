@@ -271,7 +271,12 @@ export class MarketScene extends BaseScene {
                 const resource = this.cardInteractionSystem.getCurrentResource();
                 messagesScene.updateButtons('build', resource);
             }
-            try { EventBus.emit('market:slotSelected', { key }); } catch (_) {}
+            try {
+                EventBus.emit('market:slotSelected', { key });
+                // Additional selection events for tutorial waits
+                EventBus.emit('market:selected', { key });
+                EventBus.emit(`market:selected:${key}`);
+            } catch (_) {}
         }
     }
 

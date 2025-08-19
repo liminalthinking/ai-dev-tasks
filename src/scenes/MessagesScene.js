@@ -176,6 +176,14 @@ export class MessagesScene extends BaseScene {
             }
         }
 
+        // If deck is empty during Play Cards, prompt the player to end the phase
+        if (!isGameOver && currentPhase === GamePhases.PLAY_CARDS) {
+            const deckEmpty = !!(this.phaseManager && this.phaseManager.cardInteractionSystem && this.phaseManager.cardInteractionSystem.playerDeck && this.phaseManager.cardInteractionSystem.playerDeck.isDrawPileEmpty && this.phaseManager.cardInteractionSystem.playerDeck.isDrawPileEmpty());
+            if (deckEmpty) {
+                this.updatePhaseMessage('No more cards in deck. Click End Phase to continue.');
+            }
+        }
+
         // Handle Evolve button visibility and state
         this.evolveButton.visible = currentPhase === GamePhases.EVOLVE;
         
