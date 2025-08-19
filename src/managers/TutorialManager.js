@@ -21,6 +21,7 @@ const DEFAULT_STEPS = [
         allow: (ctx) => ctx.disableAll(),
         waitFor: 'next'
     },
+    /*
     {
         id: 'card-explain-kampung',
         mode: 'card-explainer',
@@ -38,6 +39,7 @@ const DEFAULT_STEPS = [
         advance: 'clickAnywhere',
         allow: (ctx) => ctx.disableAll()
     },
+    */
     {
         id: 'play-cards',
         title: 'Play Cards Phase',
@@ -57,9 +59,26 @@ const DEFAULT_STEPS = [
         waitFor: 'next'
     },
     {
+        id: 'explain-icon-resource',
+        title: '',
+        text: 'It gives you 1 resource. You can use the resource to build new cards into your deck.',
+        panel: { anchor: 'bottom-center', offsetX: -40, offsetY: -50, maxWidth: 320 },
+        highlight: (ctx) => {
+            const rect = ctx.playCardStatBounds('kampung', 'resource');
+            return {
+                x: rect.x - 10,
+                y: rect.y - 40,
+                width: rect.width,
+                height: rect.height
+            };
+        },
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+    {
         id: 'show-market',
         title: '',
-        text: 'The cards in the middle row is the Market. \n\nThey are always available during the course of the game. ',
+        text: 'The cards in the middle row is the Market. \n\nThis is where you can build new cards.\n\nThey are always available during the course of the game. ',
         panel: { anchor: 'center-right', offsetX: -24, offsetY: 0, maxWidth: 320 },
         highlight: (ctx) => ctx.marketBounds(),
         advance: 'clickAnywhere',
@@ -131,7 +150,7 @@ const DEFAULT_STEPS = [
     {
         id: 'play-cards-kampung-2',
         title: '',
-        text: 'You have played the 2nd Kampung card from your starting deck.\n\nIt gives you 1 resource.',
+        text: 'You have played the 2nd Kampung card from your starting deck.\n\nIt gives you 1 additional resource to use this turn.',
         panel: { anchor: 'bottom-left', offsetX: 24, maxWidth: 420 },
         highlight: (ctx) => ctx.playCardBounds('kampung'),
         advance: 'clickAnywhere',
@@ -166,24 +185,74 @@ const DEFAULT_STEPS = [
     {
         id: 'build-phase-explanation',
         title: '',
-        text: 'In the Build phase, you can build any number of cards from the Market you have enough Resource.\n\n.',
+        text: 'You can select and build new cards from the Market into your deck.\n\n',
         panel: { anchor: 'bottom-center', offsetX: 0, maxWidth: 420 },
+        highlight: (ctx) => ctx.marketBounds(),
         advance: 'clickAnywhere',
         waitFor: 'next'
     },
     {
-        id: 'eligible-cards',
+        id: 'build-phase-select',
         title: '',
-        text: 'The cards you are eligibllt to buy have a silver medalion\n.',
+        text: 'Only the cards that you have enough Resource to build can be selected.\n\n.',
         panel: { anchor: 'bottom-center', offsetX: 0, maxWidth: 420 },
+        // Highlight all affordable cards (returns an array of rects)
+        highlight: (ctx) => {
+            const rects = ctx.marketAffordableBounds && ctx.marketAffordableBounds();
+            if (rects && rects.length) return rects;
+            return ctx.marketSlotBounds(0);
+        },
         advance: 'clickAnywhere',
         waitFor: 'next'
+    },
+    
+    {
+        id: 'number-cards',
+        title: '',
+        text: 'There are 4 of each card type available\n\n',
+        panel: { anchor: 'bottom-center', offsetX: 0, maxWidth: 420 },
+        highlight: (ctx) => {
+            // Highlight the area containing all the card counts (e.g., "x4") below the market cards.
+            // We'll assume ctx.marketCardCountBounds() returns a rect covering the area below all market cards where the counts are shown.
+            if (ctx.marketCardCountBounds) {
+                const rect = ctx.marketCardCountBounds();
+                if (rect && rect.width && rect.height) return rect;
+            }
+            // Fallback: highlight a region just below the first market slot
+            const slot = ctx.marketSlotBounds && ctx.marketSlotBounds(0);
+            if (slot && slot.width && slot.height) {
+                // Assume card counts are shown in a horizontal row below the market cards
+                return {
+                    x: slot.x,
+                    y: slot.y + slot.height + 8,
+                    width: slot.width * 6, // assuming 5 market slots
+                    height: 33 // reasonable height for the count area
+                };
+            }
+            return null;
+        },
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+    {
+        id: 'select-provision-shop',
+        mode: 'card-explainer',
+        title: 'Provision Shop',
+        text: 'Let\'s look more closely at one of the cards.\n\nClick to select the "Street Food Stall" card.',
+        panel: { anchor: 'center-right', offsetX: -24, maxWidth: 380 },
+        // Disable mouseover effect for this tutorial step
+        allow: (ctx) => {
+            if (ctx && ctx.disableMarketMouseover) ctx.disableMarketMouseover();
+            return ctx.disableAll();
+        },
+        highlight: (ctx) => ctx.marketSlotBounds(5),
+        waitFor: 'market:selected:provision-shop'
     },
     {
         id: 'card-explain-provision-shop',
         mode: 'card-explainer',
         title: 'Provision Shop',
-        text: 'Base Market card. Costs Resource to build; adds points. See Rules > Build.',
+        text: 'The Street Food Stall provides 1 Resource and 1 Point.\n\n',
         panel: { anchor: 'center-right', offsetX: -24, maxWidth: 380 },
         media: {
             textureKey: 'provision-shop',
@@ -394,6 +463,10 @@ export class TutorialManager {
                 return cfg ? { x: cfg.x, y: cfg.y, width: cfg.width, height: cfg.height } : null;
             },
             marketSlotBounds: (i) => marketScene && marketScene.getSlotBounds ? marketScene.getSlotBounds(i) : null,
+            marketAffordableCardIndexes: () => marketScene && marketScene.getAffordableSlotIndexes ? marketScene.getAffordableSlotIndexes() : [],
+            marketAffordableBounds: () => marketScene && marketScene.getAffordableSlotBounds ? marketScene.getAffordableSlotBounds() : [],
+            disableMarketMouseover: () => { if (marketScene && marketScene.disableMouseover) marketScene.disableMouseover(); return this._ctx(); },
+            enableMarketMouseover: () => { if (marketScene && marketScene.enableMouseover) marketScene.enableMouseover(); return this._ctx(); },
             buttonBounds: (k) => messagesScene && messagesScene.getButtonBounds ? messagesScene.getButtonBounds(k) : null,
             firstEvolvableBounds: () => playedScene && playedScene.getFirstEvolvableBounds ? playedScene.getFirstEvolvableBounds() : null,
             playCardBounds: (name) => playedScene && playedScene.getPlayedCardBoundsByName ? playedScene.getPlayedCardBoundsByName(name) : null,

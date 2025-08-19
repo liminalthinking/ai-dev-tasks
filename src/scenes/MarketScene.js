@@ -13,11 +13,13 @@ export class MarketScene extends BaseScene {
         this.selectedSlotIndex = null;
         this.hoverPreviews = new Map();
         this.allowedKeys = null; // tutorial whitelist
+        this.hoverEnabled = true; // allow disabling mouseover during tutorial
     }
 
     // No preload required; MarketScene relies on specific card textures only.
 
     showHoverPreview(cardImage) {
+        if (!this.hoverEnabled) return;
         // Remove existing preview for this card
         this.hideHoverPreview(cardImage);
 
@@ -50,6 +52,20 @@ export class MarketScene extends BaseScene {
         if (overlay && id) overlay.hideCardPreview(id);
         this.hoverPreviews.delete(cardImage);
     }
+
+    // Tutorial helpers to toggle mouseover previews
+    disableMouseover() {
+        this.hoverEnabled = false;
+        // Clear any active previews
+        if (this.marketSlots) {
+            this.marketSlots.forEach(slot => {
+                const img = slot && slot.first;
+                if (img) this.hideHoverPreview(img);
+            });
+        }
+    }
+
+    enableMouseover() { this.hoverEnabled = true; }
 
     createScene() {
 
@@ -309,6 +325,23 @@ export class MarketScene extends BaseScene {
         const x = bounds.x + slot.x + (img.x - w / 2);
         const y = bounds.y + slot.y + (img.y - h / 2);
         return { x, y, width: w, height: h };
+    }
+
+    // Return indexes of all affordable cards currently visible in the market
+    getAffordableSlotIndexes() {
+        const out = [];
+        this.marketSlots.forEach((slot, i) => {
+            const img = slot && slot.first;
+            if (img && img.visible !== false && img.isAffordable) {
+                out.push(i);
+            }
+        });
+        return out;
+    }
+
+    // Return bounds for all affordable cards
+    getAffordableSlotBounds() {
+        return this.getAffordableSlotIndexes().map(i => this.getSlotBounds(i));
     }
 
     setAllowedKeys(keysOrNull) {

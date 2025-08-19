@@ -113,14 +113,19 @@ export class TutorialScene extends Phaser.Scene {
             this.ui.dim.disableInteractive();
         }
 
-        // Highlight target if provided (simple stroked rect)
+        // Highlight target(s) if provided (supports single rect or array of rects)
         this.ui.highlight.clear();
         if (step && typeof step.highlight === 'function') {
             try {
-                const rect = step.highlight();
-                if (rect && rect.width && rect.height) {
+                const result = step.highlight();
+                const rects = Array.isArray(result) ? result : (result ? [result] : []);
+                if (rects.length) {
                     this.ui.highlight.lineStyle(3, 0xffff66, 1);
-                    this.ui.highlight.strokeRect(rect.x, rect.y, rect.width, rect.height);
+                    rects.forEach(r => {
+                        if (r && r.width && r.height) {
+                            this.ui.highlight.strokeRect(r.x, r.y, r.width, r.height);
+                        }
+                    });
                 }
             } catch (_) {}
         }
