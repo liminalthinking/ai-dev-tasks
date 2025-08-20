@@ -6,7 +6,7 @@ const DEFAULT_STEPS = [
     {
         id: 'welcome',
         title: 'Welcome!',
-        text: 'SG60: Building the Lion City is a single player deckbuilding game.\n\nEach game begins with an identical deck of 3 cards that you can evolve and add to as the game progresses..',
+        text: 'SG60: Building the Lion City is a single player deckbuilding game.\n\nYou will Build your city by Building new cards into your deck, and then Evolving them over 12 turns.\n\nMaximize your Points while keeping Pressure in check(less than 5) to keep your nation strong and free, reaching out together for peace and harmony!',
         panel: { anchor: 'top-center', offsetY: 100, maxWidth: 320, align: 'center' },
         highlight: null,
         allow: (ctx) => ctx.disableAll(),
@@ -14,36 +14,17 @@ const DEFAULT_STEPS = [
     },
     {
         id: 'startingdeck',
-        title: 'Your Starting Deck',
-        text: 'Each deck starts with 2 kampung cards and 1 swamp card.\n\nThese cards produce Resource as well as Pressure.',
+        title: '',
+        text: 'Your starting deck has 2 kampung cards and 1 swamp card.\n\nThese cards produce Resource as well as Pressure.',
         panel: { anchor: 'top-center', offsetY: 100, maxWidth: 320, align: 'center' },
         highlight: null,
         allow: (ctx) => ctx.disableAll(),
         waitFor: 'next'
     },
-    /*
-    {
-        id: 'card-explain-kampung',
-        mode: 'card-explainer',
-        title: '',
-        text: 'Each Kampung card provides 1 Resource which can be used to acquire additional cards for your deck.',
-        panel: { anchor: 'center-left', offsetX: 100, maxWidth: 320, align: 'center' },
-        media: {
-            textureKey: 'provision-shop',
-            url: 'assets/images/cards/provision-shop.png',
-            fit: 'contain',
-            anchor: 'center',
-            offsetX: 24,
-            caption: ''
-        },
-        advance: 'clickAnywhere',
-        allow: (ctx) => ctx.disableAll()
-    },
-    */
     {
         id: 'play-cards',
-        title: 'Play Cards Phase',
-        text: 'The game starts with the play cards phase.\n\nPlay a card from your deck by clicking on the deck',
+        title: '',
+        text: 'The game starts with the Play Cards phase.\n\nCLICK ON YOUR DECK TO PLAY A CARD FROM IT',
         panel: { anchor: 'bottom-center', offsetX: -200, offsetY: -100, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.deckBounds(),
         allow: (ctx) => ctx.enableDeckOnly(),
@@ -51,7 +32,6 @@ const DEFAULT_STEPS = [
     },
     {
         id: 'play-cards-kampung',
-        
         text: 'You have played a Kampung card.\n\n',
         panel: { anchor: 'bottom-center', offsetX: 20, offsetY: -100, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.playCardBounds('kampung'),
@@ -97,7 +77,7 @@ const DEFAULT_STEPS = [
         id: 'play-cards-2',
         title: '',
         text: 'To increase the number of resource, you want to play as many cards as possible from your deck to gain Resource.\n\nClick the deck to play the next card',
-        panel: { anchor: 'bottom-left', offsetX: 24, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'bottom-center', offsetX: -200, offsetY: -100, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.deckBounds(),
         allow: (ctx) => ctx.enableDeckOnly(),
         waitFor: 'card:drawn'
@@ -157,7 +137,7 @@ const DEFAULT_STEPS = [
     {
         id: 'play-cards-3',
         title: '',
-        text: 'Since you are only at 1/5 Pressure, let\'s go ahead and draw the last card in your deck to gain more Resource.\n\nClick the deck to play the next card',
+        text: 'Since you are only at 1/5 Pressure, let\'s go ahead and draw the last card in your deck to gain more Resource.\n\nCLICK ON THE DECK TO PLAY THE NEXT CARD',
         panel: { anchor: 'bottom-center', offsetX: -200, offsetY: -100, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.deckBounds(),
         allow: (ctx) => ctx.enableDeckOnly(),
@@ -176,7 +156,7 @@ const DEFAULT_STEPS = [
         id: 'empty-deck',
         title: '',
         text: 'Since there are no more cards in your deck, you must now end the Play Cards phase.\n\n',
-        panel: { anchor: 'bottom-left', offsetX: 24, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'bottom-center', offsetX: 0, offsetY: -50, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.playCardBounds('kampung'),
         advance: 'clickAnywhere',
         waitFor: 'next'
@@ -184,8 +164,8 @@ const DEFAULT_STEPS = [
     {
         id: 'end-phase-explanation',
         title: '',
-        text: 'Note that you may end the Play Cards phase at any time by clicking on the "End Phase" button.\n\nYou do not need to draw all the cards in your deck.\n\nNow click on the "End Phase" button to advance to the Build phase.',
-        panel: { anchor: 'center-right', offsetY: 100, maxWidth: 320, align: 'center' },
+        text: 'Note that you may end the Play Cards phase at any time by clicking on the "End Phase" button.\n\nYou do not need to draw all the cards in your deck.\n\nCLICK ON "End Phase" TO GO TO THE BUILD PHASE.',
+        panel: { anchor: 'center-right', offsetY: 120, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.buttonBounds('endPhase'),
         allow: (ctx) => ctx.allowButtons({ endPhase: true }),
         waitFor: 'phase:changed:build'
@@ -193,8 +173,8 @@ const DEFAULT_STEPS = [
     {
         id: 'build-phase',
         title: '',
-        text: 'You are now in the Build Phase.\n\n',
-        panel: { anchor: 'center-center', offsetX: 24, maxWidth: 320, align: 'center' },
+        text: 'You are now in the Build Phase.',
+        panel: { anchor: 'center-center', offsetX: 24, offsetY:24, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.marketBounds(),
         advance: 'clickAnywhere',
         waitFor: 'next'
@@ -203,7 +183,7 @@ const DEFAULT_STEPS = [
         id: 'build-phase-explanation',
         title: '',
         text: 'You can select and build new cards from the Market into your deck.\n\n',
-        panel: { anchor: 'center-center', offsetX: 24, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'center-center', offsetX: 24, offsetY:24, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.marketBounds(),
         advance: 'clickAnywhere',
         waitFor: 'next'
@@ -212,7 +192,7 @@ const DEFAULT_STEPS = [
         id: 'build-phase-select',
         title: '',
         text: 'Only the cards that you have enough Resource to build can be selected.\n\n',
-        panel: { anchor: 'bottom-center', offsetX: 0, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'center-center', offsetX: 24, offsetY:24, maxWidth: 320, align: 'center' },
         // Highlight all affordable cards (returns an array of rects)
         highlight: (ctx) => {
             const rects = ctx.marketAffordableBounds && ctx.marketAffordableBounds();
@@ -227,7 +207,7 @@ const DEFAULT_STEPS = [
         id: 'number-cards',
         title: '',
         text: 'There are 4 of each card type available\n\n',
-        panel: { anchor: 'bottom-center', offsetX: 0, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'center-center', offsetX: 24, offsetY:50, maxWidth: 320, align: 'center' },
         highlight: (ctx) => {
             // Highlight the area containing all the card counts (e.g., "x4") below the market cards.
             // We'll assume ctx.marketCardCountBounds() returns a rect covering the area below all market cards where the counts are shown.
@@ -255,7 +235,7 @@ const DEFAULT_STEPS = [
         id: 'select-street-food-stall',
         mode: 'card-explainer',
         text: 'Let\'s look more closely at one of the cards.\n\nClick to select the "Street Food Stall" card.',
-        panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'center-right', offsetX: -24, offset: -60, maxWidth: 320, align: 'center' },
         // Disable mouseover; enable clicks only for Street Food Stall
         allow: (ctx) => {
             if (ctx && ctx.disableMarketMouseover) ctx.disableMarketMouseover();
@@ -301,7 +281,7 @@ const DEFAULT_STEPS = [
         id: 'street-food-stall-highlight-produce',
         mode: 'card-explainer',
         title: '',
-        text: 'This area indicates what it produces.\n\nHere, the Street Food Stall produces 1 Resource and 1 Pressure.',
+        text: 'This area indicates what it produces.\n\nHere, the Street Food Stall produces 2 Resource and 1 Pressure.',
         panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
         media: {
             textureKey: 'street-food-stall',
@@ -318,7 +298,7 @@ const DEFAULT_STEPS = [
         id: 'street-food-stall-highlight-canevolve',
         mode: 'card-explainer',
         title: '',
-        text: 'Each card in the Market can be evolved exactly once.',
+        text: 'Each card in the Market can be evolved exactly once.\n\nWe shall see later how to Evolve cards during the Evolve phase',
         panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
         media: {
             textureKey: 'street-food-stall',
@@ -387,7 +367,7 @@ const DEFAULT_STEPS = [
         id: 'select-street-food-stall-build',
         mode: 'card-explainer',
         text: 'Let\'s Build the Street Food Stall.\n\nClick to select the "Street Food Stall" card.',
-        panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'center-right', offsetX: -24, offset: -60, maxWidth: 320, align: 'center' },
         // Disable mouseover; enable clicks only for Street Food Stall
         allow: (ctx) => {
             if (ctx && ctx.disableMarketMouseover) ctx.disableMarketMouseover();
@@ -399,7 +379,8 @@ const DEFAULT_STEPS = [
     {
         id: 'build-street-food-stall-clickbuild',
         text: 'Now click the Build Button.',
-        panel: { anchor: 'top-center', offsetY: 24, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'center-right', offsetX: -24, offset: -100, maxWidth: 320, align: 'center' },
+
         highlight: (ctx) => ctx.buttonBounds('build'),
         // Enable Build immediately; selection from previous step should persist
         allow: (ctx) => ctx.allowButtons({ build: true }),
@@ -422,7 +403,7 @@ const DEFAULT_STEPS = [
     {
         id: 'build-provision-shop-clickbuild',
         text: 'Now click the Build Button.',
-        panel: { anchor: 'top-center', offsetY: 24, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'center-right', offsetX: -24, offset: -100, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.buttonBounds('build'),
         // Enable Build immediately; selection from previous step should persist
         allow: (ctx) => ctx.allowButtons({ build: true }),
@@ -431,11 +412,65 @@ const DEFAULT_STEPS = [
     },
     {
         id: 'no-more-resources-end-buildphase',
-        text: 'You have no more Resources to build this turn.\n\nClick the End Phase button to continue.',
-        panel: { anchor: 'center-center', offsetX: -24, offsetY: -24, maxWidth: 320, align: 'center' },
+        text: 'You have no more Resources to build this turn.\n\nCLICK END PHASE TO CONTINUE.',
+        panel: { anchor: 'center-right', offsetX: -24, offsetY: -50, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.buttonBounds('endPhase'),
         allow: (ctx) => ctx.allowButtons({ endPhase: true }).disableAllExceptMessages(),
         waitFor: 'phase:changed:evolve'
+    },
+    {
+        id: 'evolve-phase',
+        title: '',
+        text: 'You are now in the Evolve Phase',
+        panel: { anchor: 'center-center', offsetX: 24, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.playedBounds(),
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+    {
+        id: 'explain-evolve-phase',
+        title: '',
+        text: 'Every card in the deck, including your starting hand can be evolved exactly once',
+        panel: { anchor: 'center-center', offsetX: 24, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.playedBounds(),
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+    {
+        id: 'explain-evolve-phase-2',
+        title: '',
+        text: 'You can only evolve cards that you played from your DECK this turn.',
+        panel: { anchor: 'center-center', offsetX: 24, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.playedBounds(),
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+    {
+        id: 'explain-evolve-phase-3',
+        title: '',
+        text: 'This means you can only evolve cards in this area.\n\nYou cannot evolve cards in your DECK or in the DISCARD Pile.',
+        panel: { anchor: 'center-center', offsetX: 24, offsetY: 50, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.playedBounds(),
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+    {
+        id: 'explain-evolve-phase-4',
+        title: '',
+        text: 'Since we have 0 Resource, let\'s skip the Evolve phase this turn',
+        panel: { anchor: 'center-center', offsetX: 24, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.playedBounds(),
+        advance: 'clickAnywhere',
+        waitFor: 'next'
+    },
+    {
+        id: 'end-evolve-phase',
+        title: '',
+        text: 'Just like the Play Card phase and Build phase, you can end your phase any time you want.\n\nClick on the End Phase button.',
+        panel: { anchor: 'center-right', offsetX: -24, offsetY: -50, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.buttonBounds('endPhase'),
+        allow: (ctx) => ctx.allowButtons({ endPhase: true }).disableAllExceptMessages(),
+        waitFor: 'phase:changed:end'
     },
     {
         id: 'card-explain-evolve',
@@ -623,6 +658,10 @@ export class TutorialManager {
             deckBounds: () => deckScene && deckScene.getDeckBounds ? deckScene.getDeckBounds() : null,
             marketBounds: () => {
                 const cfg = marketScene && marketScene.config && marketScene.config.bounds;
+                return cfg ? { x: cfg.x, y: cfg.y, width: cfg.width, height: cfg.height } : null;
+            },
+            playedBounds: () => {
+                const cfg = playedScene && playedScene.config && playedScene.config.bounds;
                 return cfg ? { x: cfg.x, y: cfg.y, width: cfg.width, height: cfg.height } : null;
             },
             marketSlotBounds: (i) => marketScene && marketScene.getSlotBounds ? marketScene.getSlotBounds(i) : null,

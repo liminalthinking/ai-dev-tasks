@@ -73,8 +73,7 @@ export class GameRulesScene extends Phaser.Scene {
 			//'Remember: Every build is a step toward a thriving metropolis—but do not forget your roots.',
 			'🔧 3. Evolve: Evolve eligible building cards using the RESOURCE you gained from playing cards this turn',
 			//'Evolve kampongs into HDB Blocks. Upgrade street food stalls into iconic hawker centres. Evolve your city with pride, manage growth with care, new establishments can come with new tension (PRESSURE)...',
-			'⏳ 4. End Turn: All cards in your deck, play area and discard pile are shuffled back into your deck',
-			'',
+			'⏳ At the end of each turn, all cards in your deck, play area and discard pile are shuffled back into your deck',
 			'🏁 If you survive 12 turns, your city becomes a beacon of harmony and progress. Celebrate with fireworks over the Esplanade and cheers from the void decks!'
 		].join('\n\n');
 

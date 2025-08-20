@@ -32,16 +32,16 @@ export class TutorialScene extends Phaser.Scene {
 
         // Panel elements
         this.ui.panel = this.add.container(0, 0);
-        this.ui.panelBg = this.add.rectangle(0, 0, 520, 140, 0x111111, 0.92).setOrigin(0, 0);
+        this.ui.panelBg = this.add.rectangle(0, 0, 520, 140, 0xffffff, 1).setOrigin(0, 0).setStrokeStyle(2, 0x333333, 1);
         this.ui.title = this.add.text(0, 0, '', {
             fontSize: '20px',
-            fill: '#ffffff',
+            fill: '#000000',
             fontFamily: 'Alegreya, serif',
             wordWrap: { width: 520 }
         });
         this.ui.body = this.add.text(0, 0, '', {
-            fontSize: '16px',
-            fill: '#dddddd',
+            fontSize: '18px',
+            fill: '#000000',
             fontFamily: 'Alegreya, serif',
             wordWrap: { width: 520 }
         });

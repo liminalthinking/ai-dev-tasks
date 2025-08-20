@@ -50,7 +50,7 @@ export class IntroScene extends Phaser.Scene {
 		// Buttons
         const createButton = (label, y, onClick) => {
 			const btn = this.add.text(width / 2, y, label, {
-				fontSize: '20px',
+				fontSize: '1.5rem',
                 color: '#ffffff',
                 fontFamily: 'Alegreya, serif',
 				backgroundColor: '#444444',
