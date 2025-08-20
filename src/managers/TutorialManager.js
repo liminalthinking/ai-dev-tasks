@@ -268,7 +268,7 @@ const DEFAULT_STEPS = [
         id: 'card-explain-street-food-stall',
         mode: 'card-explainer',
         title: '',
-        text: 'The Street Food Stall provides 1 Resource and 1 Point.',
+        text: 'Each card in the Market has several key sections.',
         panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
         media: {
             textureKey: 'street-food-stall',
@@ -276,16 +276,15 @@ const DEFAULT_STEPS = [
             fit: 'contain',
             anchor: 'center-center',
             offsetX: 24,
-            caption: 'Affordable early pick to grow economy.'
         },
         advance: 'clickAnywhere',
         allow: (ctx) => ctx.disableAll()
     },
     {
-        id: 'street-food-stall-highlight-resource',
+        id: 'street-food-stall-highlight-cost',
         mode: 'card-explainer',
         title: '',
-        text: 'The Street Food Stall provides 1 Resource and 1 Point.',
+        text: 'This area indicates the card cost.\n\nHere, the Street Food Stall costs 1 Resource to Build.',
         panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
         media: {
             textureKey: 'street-food-stall',
@@ -293,21 +292,150 @@ const DEFAULT_STEPS = [
             fit: 'contain',
             anchor: 'center-center',
             offsetX: 24,
-            caption: 'Affordable early pick to grow economy.'
+        },
+        highlight: (ctx) => ctx.mediaRelativeRect({ from: 'topLeft', offsetX: 280, offsetY: 5, width: 84, height: 84 }),
+        advance: 'clickAnywhere',
+        allow: (ctx) => ctx.disableAll()
+    },
+    {
+        id: 'street-food-stall-highlight-produce',
+        mode: 'card-explainer',
+        title: '',
+        text: 'This area indicates what it produces.\n\nHere, the Street Food Stall produces 1 Resource and 1 Pressure.',
+        panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
+        media: {
+            textureKey: 'street-food-stall',
+            url: 'assets/images/cards/street-food-stall.png',
+            fit: 'contain',
+            anchor: 'center-center',
+            offsetX: 24,
         },
         highlight: (ctx) => ctx.mediaRelativeRect({ from: 'topLeft', offsetX: 20, offsetY: 300, width: 125, height: 62 }),
         advance: 'clickAnywhere',
         allow: (ctx) => ctx.disableAll()
     },
     {
-        id: 'build',
-        title: 'Build from the Market',
-        text: 'Select an affordable card, then press Build. Card moves to discard; Resource decreases. See Rules > Build.',
+        id: 'street-food-stall-highlight-canevolve',
+        mode: 'card-explainer',
+        title: '',
+        text: 'Each card in the Market can be evolved exactly once.',
+        panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
+        media: {
+            textureKey: 'street-food-stall',
+            url: 'assets/images/cards/street-food-stall.png',
+            fit: 'contain',
+            anchor: 'center-center',
+            offsetX: 24,
+        },
+        highlight: (ctx) => ctx.mediaRelativeRect({ from: 'topLeft', offsetX: 10, offsetY: 360, width: 355, height: 145 }),
+        advance: 'clickAnywhere',
+        allow: (ctx) => ctx.disableAll()
+    },
+    {
+        id: 'street-food-stall-highlight-evolvecost',
+        mode: 'card-explainer',
+        title: '',
+        text: 'This is the Resource cost to evolve the card.',
+        panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
+        media: {
+            textureKey: 'street-food-stall',
+            url: 'assets/images/cards/street-food-stall.png',
+            fit: 'contain',
+            anchor: 'center-center',
+            offsetX: 24,
+        },
+        highlight: (ctx) => ctx.mediaRelativeRect({ from: 'topLeft', offsetX: 63, offsetY: 385, width: 45, height: 45 }),
+        advance: 'clickAnywhere',
+        allow: (ctx) => ctx.disableAll()
+    },    
+    {
+        id: 'street-food-stall-highlight-evolveto',
+        mode: 'card-explainer',
+        title: '',
+        text: 'This is the card it will evolve to.\n\nIn this case, the Street Food Stall will evolve into a Hawker Centre.',
+        panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
+        media: {
+            textureKey: 'street-food-stall',
+            url: 'assets/images/cards/street-food-stall.png',
+            fit: 'contain',
+            anchor: 'center-center',
+            offsetX: 24,
+        },
+        highlight: (ctx) => ctx.mediaRelativeRect({ from: 'topLeft', offsetX: 180, offsetY: 385, width: 150, height: 40 }),
+        advance: 'clickAnywhere',
+        allow: (ctx) => ctx.disableAll()
+    },    
+    {
+        id: 'street-food-stall-highlight-evolveproduce',
+        mode: 'card-explainer',
+        title: '',
+        text: 'This is what the evolved card will produce.\n\nIn this case, the Hawker Centre will produce 3 Resource, 4 Points and 1 Pressure.',
+        panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
+        media: {
+            textureKey: 'street-food-stall',
+            url: 'assets/images/cards/street-food-stall.png',
+            fit: 'contain',
+            anchor: 'center-center',
+            offsetX: 24,
+        },
+        // Blue highlight: x=295, y=430, width=60, height=38 (from visual estimation)
+        highlight: (ctx) => ctx.mediaRelativeRect({ from: 'topLeft', offsetX: 235, offsetY: 420, width: 120, height: 40 }),
+        advance: 'clickAnywhere',
+        allow: (ctx) => ctx.disableAll()
+    },    
+    {
+        id: 'select-street-food-stall-build',
+        mode: 'card-explainer',
+        text: 'Let\'s Build the Street Food Stall.\n\nClick to select the "Street Food Stall" card.',
+        panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
+        // Disable mouseover; enable clicks only for Street Food Stall
+        allow: (ctx) => {
+            if (ctx && ctx.disableMarketMouseover) ctx.disableMarketMouseover();
+            return ctx.enableMarketOnly(['street-food-stall']);
+        },
+        highlight: (ctx) => ctx.marketSlotBounds(5),
+        waitFor: 'market:selected:street-food-stall'
+    },
+    {
+        id: 'build-street-food-stall-clickbuild',
+        text: 'Now click the Build Button.',
         panel: { anchor: 'top-center', offsetY: 24, maxWidth: 320, align: 'center' },
-        highlight: (ctx) => ctx.marketSlotBounds(0),
-        allow: (ctx) => ctx.enableMarketOnly(['provision-shop']).allowButtons({ build: false }),
-        onUserSelect: (ctx) => ctx.allowButtons({ build: true }),
+        highlight: (ctx) => ctx.buttonBounds('build'),
+        // Enable Build immediately; selection from previous step should persist
+        allow: (ctx) => ctx.allowButtons({ build: true }),
+        // No need to wait for reselection; keep this for robustness if user reselects
+        //onUserSelect: (ctx) => ctx.allowButtons({ build: true }),
         waitFor: 'market:built'
+    },
+    {
+        id: 'select-provision-shop',
+        text: 'We have 1 more Resource. Let\'s Build a different card this time - The Provision Shop.\n\nClick to select the "Provision Shop" card.',
+        panel: { anchor: 'center-center', offsetX: -24, maxWidth: 320, align: 'center' },
+        // Disable mouseover; enable clicks only for Street Food Stall
+        allow: (ctx) => {
+            if (ctx && ctx.disableMarketMouseover) ctx.disableMarketMouseover();
+            return ctx.enableMarketOnly(['provision-shop']);
+        },
+        highlight: (ctx) => ctx.marketSlotBounds(0),
+        waitFor: 'market:selected:provision-shop'
+    },
+    {
+        id: 'build-provision-shop-clickbuild',
+        text: 'Now click the Build Button.',
+        panel: { anchor: 'top-center', offsetY: 24, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.buttonBounds('build'),
+        // Enable Build immediately; selection from previous step should persist
+        allow: (ctx) => ctx.allowButtons({ build: true }),
+        // Advance to next step after building successfully
+        waitFor: 'market:built'
+    },
+    {
+        id: 'no-more-resources-end-buildphase',
+        text: 'You have no more Resources to build this turn.\n\nClick the End Phase button to continue.',
+        panel: { anchor: 'center-center', offsetX: -24, offsetY: -24, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.buttonBounds('endPhase'),
+        allow: (ctx) => ctx.allowButtons({ endPhase: true }).disableAllExceptMessages(),
+        waitFor: 'phase:changed:evolve'
     },
     {
         id: 'card-explain-evolve',
