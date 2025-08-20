@@ -379,7 +379,7 @@ const DEFAULT_STEPS = [
     {
         id: 'build-street-food-stall-clickbuild',
         text: 'Now click the Build Button.',
-        panel: { anchor: 'center-right', offsetX: -24, offset: -100, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
 
         highlight: (ctx) => ctx.buttonBounds('build'),
         // Enable Build immediately; selection from previous step should persist
@@ -387,6 +387,16 @@ const DEFAULT_STEPS = [
         // No need to wait for reselection; keep this for robustness if user reselects
         //onUserSelect: (ctx) => ctx.allowButtons({ build: true }),
         waitFor: 'market:built'
+    },
+    {
+        id: 'highlight-discard-pile',
+        title: '',
+        text: 'Cards you BUILD go to the Discard Pile here.\n\nThey will be reshuffled into your deck later.',
+        panel: { anchor: 'bottom-center', offsetX: 250, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.discardPileBounds && ctx.discardPileBounds(),
+        advance: 'clickAnywhere',
+        allow: (ctx) => ctx.disableAll(),
+        waitFor: 'next'
     },
     {
         id: 'select-provision-shop',
@@ -413,7 +423,7 @@ const DEFAULT_STEPS = [
     {
         id: 'no-more-resources-end-buildphase',
         text: 'You have no more Resources to build this turn.\n\nCLICK END PHASE TO CONTINUE.',
-        panel: { anchor: 'center-right', offsetX: -24, offsetY: -50, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'center-right', offsetX: -24, offsetY: -150, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.buttonBounds('endPhase'),
         allow: (ctx) => ctx.allowButtons({ endPhase: true }).disableAllExceptMessages(),
         waitFor: 'phase:changed:evolve'
@@ -449,29 +459,128 @@ const DEFAULT_STEPS = [
         id: 'explain-evolve-phase-3',
         title: '',
         text: 'This means you can only evolve cards in this area.\n\nYou cannot evolve cards in your DECK or in the DISCARD Pile.',
-        panel: { anchor: 'center-center', offsetX: 24, offsetY: 50, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'center-center', offsetX: 50, offsetY: 150, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.playedBounds(),
         advance: 'clickAnywhere',
         waitFor: 'next'
     },
     {
-        id: 'explain-evolve-phase-4',
+        id: 'evolve-no-resource-show-hud-stats',
         title: '',
-        text: 'Since we have 0 Resource, let\'s skip the Evolve phase this turn',
-        panel: { anchor: 'center-center', offsetX: 24, maxWidth: 320, align: 'center' },
-        highlight: (ctx) => ctx.playedBounds(),
-        advance: 'clickAnywhere',
+        text: 'You have 0 Resource, so by right you cannot Evolve any cards this turn.\n\nBut let\'s use some Lion City Magic here...',
+        panel: { anchor: 'top-left', offsetX: 0, offsetY: 100, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.hudResourcePressureBounds(),
+        allow: (ctx) => ctx.disableAll(),
         waitFor: 'next'
     },
+    {
+        id: 'evolve-resource-grant',
+        title: '',
+        text: 'Well well, looks like we got a one time grant of 3 Resource!\n\nLet\'s use it to Evolve 1 of our cards',
+        panel: { anchor: 'top-left', offsetX: 0, offsetY: 100, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.hudResourcePressureBounds(),
+        allow: (ctx) => ctx.disableAll(),
+        onEnter: (mgr) => {
+            if (mgr && mgr.cardInteractionSystem) {
+                mgr.cardInteractionSystem.currentResource = (mgr.cardInteractionSystem.currentResource || 0) + 3;
+            }
+            if (mgr && mgr.phaseManager && typeof mgr.phaseManager.updateScenes === 'function') {
+                mgr.phaseManager.updateScenes();
+            }
+        },
+        waitFor: 'next'
+    },
+    {
+        id: 'evolve-kampung',
+        title: '',
+        text: 'Try to Evolve a Kampung card.\n\nCLICK ON KAMPUNG CARD',
+        panel: { anchor: 'bottom-center', offsetX: 20, offsetY: -100, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.playCardBounds('kampung'),
+        allow: (ctx) => {
+            if (ctx && ctx.disablePlayedMouseover) ctx.disablePlayedMouseover();
+            return ctx.enablePlayedOnly(['kampung']);
+        },
+        waitFor: 'play:selected:kampung'
+    },
+    {
+        id: 'evolve-card-explain-kampung',
+        mode: 'card-explainer',
+        title: '',
+        text: 'Let\'s look more closely at the Kampung card.',
+        panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
+        media: {
+            textureKey: 'kampung',
+            url: 'assets/images/cards/kampung.png',
+            fit: 'contain',
+            anchor: 'center-center',
+            offsetX: 24,
+        },
+        advance: 'clickAnywhere',
+        allow: (ctx) => ctx.disableAll()
+    },
+    {
+        id: 'evolve-card-explain kampung',
+        mode: 'card-explainer',
+        title: '',
+        text: 'This is the Resource cost to evolve a Kampungcard.',
+        panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
+        media: {
+            textureKey: 'kampung',
+            url: 'assets/images/cards/kampung.png',
+            fit: 'contain',
+            anchor: 'center-center',
+            offsetX: 24,
+        },
+        highlight: (ctx) => ctx.mediaRelativeRect({ from: 'topLeft', offsetX: 63, offsetY: 385, width: 45, height: 45 }),
+        advance: 'clickAnywhere',
+        allow: (ctx) => ctx.disableAll()
+    },    
+    {
+        id: 'evolve-card-explain kampung',
+        mode: 'card-explainer',
+        title: '',
+        text: 'The Kampung will Evolve to a HDB Block.',
+        panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
+        media: {
+            textureKey: 'kampung',
+            url: 'assets/images/cards/kampung.png',
+            fit: 'contain',
+            anchor: 'center-center',
+            offsetX: 24,
+        },
+        highlight: (ctx) => ctx.mediaRelativeRect({ from: 'topLeft', offsetX: 180, offsetY: 385, width: 150, height: 40 }),
+        advance: 'clickAnywhere',
+        allow: (ctx) => ctx.disableAll()
+    },    
+    {
+        id: 'evolve-card-explain kampung',
+        mode: 'card-explainer',
+        title: '',
+        text: 'This is what the evolved card will produce.\n\nIn this case, the HDB Block will produce 3 Resource, 4 Points and 1 Pressure.',
+        panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
+        media: {
+            textureKey: 'kampung',
+            url: 'assets/images/cards/kampung.png',
+            fit: 'contain',
+            anchor: 'center-center',
+            offsetX: 24,
+        },
+        // Blue highlight: x=295, y=430, width=60, height=38 (from visual estimation)
+        highlight: (ctx) => ctx.mediaRelativeRect({ from: 'topLeft', offsetX: 235, offsetY: 420, width: 120, height: 40 }),
+        advance: 'clickAnywhere',
+        allow: (ctx) => ctx.disableAll()
+    },    
+    
     {
         id: 'end-evolve-phase',
         title: '',
-        text: 'Just like the Play Card phase and Build phase, you can end your phase any time you want.\n\nClick on the End Phase button.',
+        text: 'Just like the Play Card phase and Build phase, you can end the Evolve phase any time you want.\n\nCLICK ON END PHASE TO END YOUR TURN.',
         panel: { anchor: 'center-right', offsetX: -24, offsetY: -50, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.buttonBounds('endPhase'),
         allow: (ctx) => ctx.allowButtons({ endPhase: true }).disableAllExceptMessages(),
         waitFor: 'phase:changed:end'
     },
+
     {
         id: 'card-explain-evolve',
         mode: 'card-explainer',
@@ -530,6 +639,7 @@ export class TutorialManager {
         this.scene = null;
         this._backdropAdvance = false;
         this._subscriptions = [];
+        this._enteredSteps = new Set();
     }
 
     attachScene(scene) {
@@ -551,6 +661,11 @@ export class TutorialManager {
         // Render
         const renderable = this._materialize(step);
         this.scene.renderStep(renderable);
+        // Call per-step onEnter once
+        if (step && typeof step.onEnter === 'function' && step.id && !this._enteredSteps.has(step.id)) {
+            this._enteredSteps.add(step.id);
+            try { step.onEnter(this); } catch (_) {}
+        }
         // Bind event waits (scaffold)
         this._unbindEvents();
         if (step.waitFor && typeof step.waitFor === 'string' && step.waitFor !== 'next') {
@@ -616,6 +731,7 @@ export class TutorialManager {
         const marketScene = this.sceneManager.getScene('MarketScene');
         const messagesScene = this.sceneManager.getScene('MessagesScene');
         const playedScene = this.sceneManager.getScene('PlayedCardsScene');
+        const discardScene = this.sceneManager.getScene('DiscardPileScene');
         const hudScene = this.sceneManager.getScene('HUDScene');
         const tutorialScene = this.scene;
         return {
@@ -667,6 +783,10 @@ export class TutorialManager {
             marketSlotBounds: (i) => marketScene && marketScene.getSlotBounds ? marketScene.getSlotBounds(i) : null,
             marketAffordableCardIndexes: () => marketScene && marketScene.getAffordableSlotIndexes ? marketScene.getAffordableSlotIndexes() : [],
             marketAffordableBounds: () => marketScene && marketScene.getAffordableSlotBounds ? marketScene.getAffordableSlotBounds() : [],
+            discardPileBounds: () => {
+                const cfg = discardScene && discardScene.config && discardScene.config.bounds;
+                return cfg ? { x: cfg.x, y: cfg.y, width: cfg.width, height: cfg.height } : null;
+            },
             disableMarketMouseover: () => { if (marketScene && marketScene.disableMouseover) marketScene.disableMouseover(); return this._ctx(); },
             enableMarketMouseover: () => { if (marketScene && marketScene.enableMouseover) marketScene.enableMouseover(); return this._ctx(); },
             buttonBounds: (k) => messagesScene && messagesScene.getButtonBounds ? messagesScene.getButtonBounds(k) : null,
