@@ -33,7 +33,7 @@ const DEFAULT_STEPS = [
     {
         id: 'play-cards-kampung',
         text: 'You have played a Kampung card.\n\n',
-        panel: { anchor: 'bottom-center', offsetX: 20, offsetY: -100, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'bottom-center', offsetX: 30, offsetY: -100, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.playCardBounds('kampung'),
         advance: 'clickAnywhere',
         waitFor: 'next',
@@ -147,7 +147,7 @@ const DEFAULT_STEPS = [
         id: 'play-cards-kampung-2',
         title: '',
         text: 'You have played the 2nd Kampung card from your starting deck.\n\nIt gives you 1 additional resource to use this turn.',
-        panel: { anchor: 'bottom-center', offsetX: 0, offsetY: -50, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'bottom-center', offsetX: 50, offsetY: -80, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.playCardBounds('kampung'),
         advance: 'clickAnywhere',
         waitFor: 'next'
@@ -156,7 +156,7 @@ const DEFAULT_STEPS = [
         id: 'empty-deck',
         title: '',
         text: 'Since there are no more cards in your deck, you must now end the Play Cards phase.\n\n',
-        panel: { anchor: 'bottom-center', offsetX: 0, offsetY: -50, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'bottom-center', offsetX: 50, offsetY: -80, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.playCardBounds('kampung'),
         advance: 'clickAnywhere',
         waitFor: 'next'
@@ -242,7 +242,8 @@ const DEFAULT_STEPS = [
             return ctx.enableMarketOnly(['street-food-stall']);
         },
         highlight: (ctx) => ctx.marketSlotBounds(5),
-        waitFor: 'market:selected:street-food-stall'
+        // Listen for generic selection; clicks are limited to Street Food Stall via whitelist
+        waitFor: 'market:selected'
     },
     {
         id: 'card-explain-street-food-stall',
@@ -392,7 +393,7 @@ const DEFAULT_STEPS = [
         id: 'highlight-discard-pile',
         title: '',
         text: 'Cards you BUILD go to the Discard Pile here.\n\nThey will be reshuffled into your deck later.',
-        panel: { anchor: 'bottom-center', offsetX: 250, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'bottom-center', offsetX: 200, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.discardPileBounds && ctx.discardPileBounds(),
         advance: 'clickAnywhere',
         allow: (ctx) => ctx.disableAll(),
@@ -401,7 +402,7 @@ const DEFAULT_STEPS = [
     {
         id: 'select-provision-shop',
         text: 'We have 1 more Resource. Let\'s Build a different card this time - The Provision Shop.\n\nClick to select the "Provision Shop" card.',
-        panel: { anchor: 'center-center', offsetX: -24, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'center-left', offsetX: 200, offsetY: -100,maxWidth: 320, align: 'center' },
         // Disable mouseover; enable clicks only for Street Food Stall
         allow: (ctx) => {
             if (ctx && ctx.disableMarketMouseover) ctx.disableMarketMouseover();
@@ -494,7 +495,7 @@ const DEFAULT_STEPS = [
         id: 'evolve-kampung',
         title: '',
         text: 'Try to Evolve a Kampung card.\n\nCLICK ON KAMPUNG CARD',
-        panel: { anchor: 'bottom-center', offsetX: 20, offsetY: -100, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'bottom-center', offsetX: 50, offsetY: -100, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.playCardBounds('kampung'),
         allow: (ctx) => {
             if (ctx && ctx.disablePlayedMouseover) ctx.disablePlayedMouseover();
@@ -519,10 +520,10 @@ const DEFAULT_STEPS = [
         allow: (ctx) => ctx.disableAll()
     },
     {
-        id: 'evolve-card-explain kampung',
+        id: 'evolve-card-explain-kampung-resource',
         mode: 'card-explainer',
         title: '',
-        text: 'This is the Resource cost to evolve a Kampungcard.',
+        text: 'This is the Resource cost to evolve a Kampung card.',
         panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
         media: {
             textureKey: 'kampung',
@@ -536,7 +537,7 @@ const DEFAULT_STEPS = [
         allow: (ctx) => ctx.disableAll()
     },    
     {
-        id: 'evolve-card-explain kampung',
+        id: 'evolve-card-explain-kampung-evolve',
         mode: 'card-explainer',
         title: '',
         text: 'The Kampung will Evolve to a HDB Block.',
@@ -553,10 +554,10 @@ const DEFAULT_STEPS = [
         allow: (ctx) => ctx.disableAll()
     },    
     {
-        id: 'evolve-card-explain kampung',
+        id: 'evolve-card-explain-kampung-evolve-produce',
         mode: 'card-explainer',
         title: '',
-        text: 'This is what the evolved card will produce.\n\nIn this case, the HDB Block will produce 3 Resource, 4 Points and 1 Pressure.',
+        text: 'This is what the evolved card will produce.\n\nIn this case, the HDB Block will produce 2 Resource, 2 Points',
         panel: { anchor: 'center-right', offsetX: -24, maxWidth: 320, align: 'center' },
         media: {
             textureKey: 'kampung',
@@ -570,59 +571,101 @@ const DEFAULT_STEPS = [
         advance: 'clickAnywhere',
         allow: (ctx) => ctx.disableAll()
     },    
-    
+    {
+        id: 'evolve-kampung',
+        title: '',
+        text: 'You try to Evolve a Kampung card.\n\nCLICK ON KAMPUNG CARD',
+        panel: { anchor: 'bottom-center', offsetX: 50, offsetY: -100, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.playCardBounds('kampung'),
+        allow: (ctx) => {
+            if (ctx && ctx.disablePlayedMouseover) ctx.disablePlayedMouseover();
+            return ctx.enablePlayedOnly(['kampung']);
+        },
+        waitFor: 'play:selected:kampung'
+    },
+    {
+        id: 'evolve-kampung-button',
+        text: 'Now click the Evolve Button.',
+        panel: { anchor: 'center-right', offsetX: -24, offset: -100, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.buttonBounds('evolve'),
+        // Enable Build immediately; selection from previous step should persist
+        allow: (ctx) => ctx.allowButtons({ evolve: true }),
+        // Advance to next step after evolving successfully
+        waitFor: 'evolve:done'
+    },
+    {
+        id: 'highlight-discard-pile-evolve',
+        title: '',
+        text: 'Cards you EVOLVE also go to the Discard Pile here.\n\nThey will be reshuffled into your deck later.',
+        panel: { anchor: 'bottom-center', offsetX: 200, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.discardPileBounds && ctx.discardPileBounds(),
+        advance: 'clickAnywhere',
+        allow: (ctx) => ctx.disableAll(),
+        waitFor: 'next'
+    },
     {
         id: 'end-evolve-phase',
         title: '',
         text: 'Just like the Play Card phase and Build phase, you can end the Evolve phase any time you want.\n\nCLICK ON END PHASE TO END YOUR TURN.',
-        panel: { anchor: 'center-right', offsetX: -24, offsetY: -50, maxWidth: 320, align: 'center' },
+        panel: { anchor: 'bottom-right', offsetX: -24, offsetY: -150, maxWidth: 320, align: 'center' },
         highlight: (ctx) => ctx.buttonBounds('endPhase'),
         allow: (ctx) => ctx.allowButtons({ endPhase: true }).disableAllExceptMessages(),
-        waitFor: 'phase:changed:end'
+        waitFor: 'phase:changed:endTurn'
+    },
+    {
+        id: 'end-turn-reshuffle-explain',
+        title: '',
+        text: 'At the end of a turn, all cards in your remaining deck, the played cards, and the discard pile are reshuffled into the deck for the next turn.',
+        panel: { anchor: 'bottom-center', offsetX: -200, offsetY: -100, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.deckBounds(),
+        advance: 'clickAnywhere',
+        //allow: (ctx) => ctx.disableAll()
+    },
+    {
+        id: 'hud-points-tally',
+        title: '',
+        text: 'Great Job!\n\nSee all the new points you racked up from Building and Evolving cards.',
+        panel: { anchor: 'top-left', offsetX: 0, offsetY: 100, maxWidth: 320, align: 'center' },
+        highlight: (ctx) => ctx.hudResourcePressureBounds(),
+        advance: 'clickAnywhere',
+        allow: (ctx) => ctx.disableAll(),
+        waitFor: 'next'
+    },
+    {
+        id: 'end-turn-pressure',
+        title: '',
+        text: 'Important note!\n\nA Pressure card that produces 1 Pressure is added to your deck at the end of a turn.',
+        panel: { anchor: 'center', maxWidth: 320, align: 'center' },
+        
+        advance: 'clickAnywhere',
+        //allow: (ctx) => ctx.disableAll()
     },
 
     {
-        id: 'card-explain-evolve',
-        mode: 'card-explainer',
-        title: 'Evolving Cards',
-        text: 'Pay the evolve cost to upgrade a base card into a stronger one. See Rules > Evolve.',
-        panel: { anchor: 'bottom-center', offsetY: -20, maxWidth: 320, align: 'center' },
-        media: {
-            textureKey: 'hawker-centre',
-            url: 'assets/images/cards/hawker-centre.png',
-            fit: 'contain',
-            anchor: 'center',
-            caption: 'Evolved cards improve points and outputs.'
-        },
+        id: 'end-turn-pressure-explain',
+        title: '',
+        text: 'This simulates the pressure of growing a city\n\nRemember that every decision has a tradeoff.',
+        panel: { anchor: 'center', maxWidth: 320, align: 'center' },
+        
         advance: 'clickAnywhere',
-        allow: (ctx) => ctx.disableAll()
+        //allow: (ctx) => ctx.disableAll()
     },
     {
-        id: 'evolve',
-        title: 'Evolve Played Cards',
-        text: 'Select an eligible played card, then press Evolve. See Rules > Evolve.',
-        panel: { anchor: 'center-left', offsetX: 24, maxWidth: 320, align: 'center' },
-        highlight: (ctx) => ctx.firstEvolvableBounds(),
-        allow: (ctx) => ctx.enableEvolveOnly().allowButtons({ evolve: false }),
-        onUserSelect: (ctx) => ctx.allowButtons({ evolve: true }),
-        waitFor: 'evolve:done'
-    },
-    {
-        id: 'end-turn',
-        title: 'End of Turn',
-        text: 'End Phase adds a Pressure card and reshuffles discard into deck. See Rules > End of Turn.',
-        panel: { anchor: 'bottom-right', offsetX: -24, offsetY: -24, maxWidth: 320, align: 'center' },
-        highlight: (ctx) => ctx.buttonBounds('endPhase'),
-        allow: (ctx) => ctx.allowButtons({ endPhase: true }).disableAllExceptMessages(),
-        waitFor: 'endTurn:processed'
+        id: 'end-turn-risk',
+        title: '',
+        text: 'And at some point, you will have to decide whether to take the risk of playing the next card in your deck to gain more Resource to grow faster\n\nEvery choice shapes your city\'s future!',
+        panel: { anchor: 'center', maxWidth: 320, align: 'center' },
+        advance: 'clickAnywhere',
+        //allow: (ctx) => ctx.disableAll()
     },
     {
         id: 'finish',
-        title: 'You\'re Ready! ',
-        text: 'Core loop: Play → Build → Evolve → End Turn. See Rules for details.',
+        title: '',
+        text: 'That\'s all! You now know everything you need to go forth and build your burgeoning City.\n\nCLICK END TUTORIAL AND START A NEW GAME',
         panel: { anchor: 'center', maxWidth: 320, align: 'center' },
-        highlight: null,
-        allow: (ctx) => ctx.disableAll(),
+        highlight: (ctx) => ctx.exitTutorialButtonBounds && ctx.exitTutorialButtonBounds(),
+        allow: (ctx) => ctx.enableExitTutorialOnly && ctx.enableExitTutorialOnly(),
+        //allow: (ctx) => ctx.disableAll(),
         actions: []
     }
 ];
@@ -763,6 +806,14 @@ export class TutorialManager {
                 messagesScene && messagesScene.forceEnable({ endPhase: false, build: false, evolve: false });
                 return this._ctx();
             },
+            enablePlayedOnly: (whitelist) => {
+                deckScene && deckScene.setInteractive(false);
+                marketScene && marketScene.setInteractive(false);
+                playedScene && playedScene.setInteractive(true);
+                playedScene && playedScene.setAllowedKeys && playedScene.setAllowedKeys(whitelist || null);
+                messagesScene && messagesScene.forceEnable({ endPhase: false, build: false, evolve: false });
+                return this._ctx();
+            },
             enableEvolveOnly: () => {
                 deckScene && deckScene.setInteractive(false);
                 marketScene && marketScene.setInteractive(false);
@@ -789,6 +840,8 @@ export class TutorialManager {
             },
             disableMarketMouseover: () => { if (marketScene && marketScene.disableMouseover) marketScene.disableMouseover(); return this._ctx(); },
             enableMarketMouseover: () => { if (marketScene && marketScene.enableMouseover) marketScene.enableMouseover(); return this._ctx(); },
+            disablePlayedMouseover: () => { if (playedScene && playedScene.disableMouseover) playedScene.disableMouseover(); return this._ctx(); },
+            enablePlayedMouseover: () => { if (playedScene && playedScene.enableMouseover) playedScene.enableMouseover(); return this._ctx(); },
             buttonBounds: (k) => messagesScene && messagesScene.getButtonBounds ? messagesScene.getButtonBounds(k) : null,
             firstEvolvableBounds: () => playedScene && playedScene.getFirstEvolvableBounds ? playedScene.getFirstEvolvableBounds() : null,
             playCardBounds: (name) => playedScene && playedScene.getPlayedCardBoundsByName ? playedScene.getPlayedCardBoundsByName(name) : null,
@@ -811,6 +864,25 @@ export class TutorialManager {
                 const width = (opts && opts.width) || 0;
                 const height = (opts && opts.height) || 0;
                 return { x, y, width, height };
+            },
+            exitTutorialButtonBounds: () => {
+                // Return bounds for the exit tutorial button
+                // This would typically be positioned in the tutorial scene
+                return tutorialScene && tutorialScene.getExitTutorialButtonBounds ? 
+                    tutorialScene.getExitTutorialButtonBounds() : 
+                    { x: 400, y: 300, width: 200, height: 50 }; // fallback bounds
+            },
+            enableExitTutorialOnly: () => {
+                // Enable only the exit tutorial functionality
+                deckScene && deckScene.setInteractive(false);
+                marketScene && marketScene.setInteractive(false);
+                playedScene && playedScene.setInteractive(false);
+                messagesScene && messagesScene.forceEnable({ endPhase: false, build: false, evolve: false });
+                // Enable exit tutorial button in tutorial scene
+                if (tutorialScene && tutorialScene.enableExitTutorialButton) {
+                    tutorialScene.enableExitTutorialButton();
+                }
+                return this._ctx();
             }
         };
     }

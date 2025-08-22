@@ -280,6 +280,26 @@ export class TutorialScene extends Phaser.Scene {
             rect: { x: i.rect.x, y: i.rect.y, width: i.rect.width, height: i.rect.height }
         };
     }
+
+    // Expose bounds of the Exit Tutorial button for tutorial highlighting
+    getExitTutorialButtonBounds() {
+        if (!this.ui || !this.ui.exitBtn || typeof this.ui.exitBtn.getBounds !== 'function') {
+            return { x: 0, y: 0, width: 0, height: 0 };
+        }
+        const b = this.ui.exitBtn.getBounds();
+        return { x: b.x, y: b.y, width: b.width, height: b.height };
+    }
+
+    // Ensure the Exit Tutorial button is visible and interactive
+    enableExitTutorialButton() {
+        if (!this.ui || !this.ui.exitBtn) return;
+        this.ui.exitBtn.setVisible(true);
+        this.ui.exitBtn.setInteractive({ useHandCursor: true });
+        // Keep above overlays/highlights
+        if (this.ui && this.ui.root && this.ui.exitBtn) {
+            this.ui.root.bringToTop(this.ui.exitBtn);
+        }
+    }
 }
 
 

@@ -9,6 +9,8 @@ export class PlayedCardsScene extends BaseScene {
         this.gamePhaseManager = gamePhaseManager;
         this.playedCards = [];
         this.isInteractive = false;
+        this.hoverEnabled = true;
+        this.allowedKeys = null; // optional whitelist for tutorial
     }
 
     createScene() {
@@ -58,6 +60,7 @@ export class PlayedCardsScene extends BaseScene {
         // Make card interactive for evolution
         cardSprite.setInteractive({ useHandCursor: true })
             .on('pointerover', () => {
+                if (!this.hoverEnabled) return;
                 // Show magnified hover preview
                 this.showHoverPreview(cardSprite, 'top-right');
                 // Show evolution preview only if eligible
@@ -71,6 +74,7 @@ export class PlayedCardsScene extends BaseScene {
             })
             .on('pointerdown', () => {
                 if (!this.isInteractive) return;
+                if (this.allowedKeys && cardSprite.cardKey && !this.allowedKeys.includes(cardSprite.cardKey)) return;
                 if (!this.isCardEligible(cardSprite.cardData)) return;
                 // Delegate to existing selection logic
                 this.handleCardClick(cardSprite);
@@ -260,7 +264,14 @@ export class PlayedCardsScene extends BaseScene {
             this.showEvolutionPreview(cardSprite.cardData, cardSprite.x, cardSprite.y);
 
             // Emit selection for tutorial
-            try { EventBus.emit('evolve:selected', { card: cardSprite.cardData }); } catch (_) {}
+            try {
+                EventBus.emit('evolve:selected', { card: cardSprite.cardData });
+                // Also emit play:selected events for tutorial steps that wait on them
+                EventBus.emit('play:selected', { key: cardSprite.cardKey, card: cardSprite.cardData });
+                if (cardSprite.cardKey) {
+                    EventBus.emit(`play:selected:${cardSprite.cardKey}`);
+                }
+            } catch (_) {}
         }
     }
 
@@ -329,5 +340,23 @@ export class PlayedCardsScene extends BaseScene {
         const w = norm.w * full.width;
         const h = norm.h * full.height;
         return { x, y, width: w, height: h };
+    }
+
+    // Tutorial helpers to toggle mouseover previews
+    disableMouseover() {
+        this.hoverEnabled = false;
+        // Also hide any current previews
+        if (this.playedCards) {
+            this.playedCards.forEach(sprite => this.hideHoverPreview(sprite));
+        }
+        this.hideEvolutionPreview();
+    }
+
+    enableMouseover() {
+        this.hoverEnabled = true;
+    }
+
+    setAllowedKeys(keys) {
+        this.allowedKeys = Array.isArray(keys) ? keys : null;
     }
 }
